@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyStream</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ── THEMES ── */
+:root{
+  --bg:        #07090f;
+  --bg2:       #0c0f1a;
+  --bg3:       #111520;
+  --bg4:       #161b2a;
+  --border:    #1a2035;
+  --border2:   #20293d;
+  --accent:    #6366f1;
+  --accent2:   #818cf8;
+  --accentRgb: 99,102,241;
+  --accentGlow:#6366f122;
+  --green:     #22c55e;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --rose:      #f43f5e;
+  --text:      #e2e8f0;
+  --textMid:   #8895aa;
+  --textDim:   #3d4f66;
+  --fontUI:    'Space Grotesk',sans-serif;
+  --fontMono:  'JetBrains Mono',monospace;
+  --fontSerif: 'Playfair Display',serif;
+  --r:         10px;
+  --rs:        6px;
+}
+[data-theme="forest"]{
+  --bg:#050e08;--bg2:#081410;--bg3:#0d1d14;--bg4:#111f17;
+  --border:#1a2e20;--border2:#203826;
+  --accent:#16a34a;--accent2:#4ade80;--accentRgb:22,163,74;--accentGlow:#16a34a22;
+}
+[data-theme="sunset"]{
+  --bg:#100a08;--bg2:#180f0b;--bg3:#1f1410;--bg4:#261a15;
+  --border:#2e1e16;--border2:#3a251c;
+  --accent:#ea580c;--accent2:#fb923c;--accentRgb:234,88,12;--accentGlow:#ea580c22;
+}
+[data-theme="sakura"]{
+  --bg:#0e080e;--bg2:#160d16;--bg3:#1c111c;--bg4:#221622;
+  --border:#2a182a;--border2:#331e33;
+  --accent:#db2777;--accent2:#f472b6;--accentRgb:219,39,119;--accentGlow:#db277722;
+}
+[data-theme="ocean"]{
+  --bg:#040c12;--bg2:#07121c;--bg3:#0c1a26;--bg4:#111f2e;
+  --border:#162435;--border2:#1c2f42;
+  --accent:#0891b2;--accent2:#38bdf8;--accentRgb:8,145,178;--accentGlow:#0891b222;
+}
+
+/* ── BASE ── */
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--fontUI);height:100vh;
+  overflow:hidden;display:flex;flex-direction:column;font-size:13px;
+}
+
+/* ── TOPBAR ── */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:44px;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.logo{
+  font-size:13px;font-weight:700;letter-spacing:0.5px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:flex;align-items:center;gap:7px;
+}
+.logo-icon{
+  width:24px;height:24px;border-radius:6px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#fff;-webkit-text-fill-color:#fff;flex-shrink:0;
+}
+.topbar-center{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:6px;
+}
+#clock-display{
+  font-family:var(--fontMono);font-size:14px;font-weight:700;
+  color:var(--text);letter-spacing:1px;
+}
+#date-display{font-size:10px;color:var(--textDim);font-weight:500;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+#current-task-label{
+  font-size:10px;color:var(--textMid);
+  max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  padding:3px 10px;background:var(--bg3);border-radius:20px;border:1px solid var(--border);
+}
+.pills{display:flex;gap:5px;}
+.pill{
+  font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;border:1px solid;
+}
+.pill.study{border-color:rgba(var(--accentRgb),0.5);color:var(--accent2);}
+.pill.break{border-color:#f59e0b55;color:var(--amber);}
+.pill.cam-on{border-color:#22c55e55;color:var(--green);}
+.pill.cam-off{border-color:var(--textDim);color:var(--textDim);}
+.pill.live{border-color:#ef444466;color:var(--red);animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ── MAIN ── */
+#main{display:flex;flex:1;overflow:hidden;}
+
+/* ── SCREEN AREA ── */
+#screen-area{flex:1;position:relative;background:#030508;overflow:hidden;}
+
+/* ambient bg gradient */
+#screen-area::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(var(--accentRgb),0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 20%, rgba(var(--accentRgb),0.03) 0%, transparent 70%);
+}
+
+#screen-placeholder{
+  position:absolute;inset:0;z-index:9;
+  width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  pointer-events:none;
+}
+#start-screen-btn{pointer-events:auto;}
+.ph-icon{
+  width:72px;height:72px;border-radius:18px;
+  background:var(--bg3);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+  box-shadow:0 0 40px rgba(var(--accentRgb),0.08);
+}
+.ph-title{font-size:16px;font-weight:600;color:var(--textMid);}
+.ph-sub{font-size:11px;color:var(--textDim);text-align:center;line-height:1.7;max-width:260px;}
+#start-screen-btn{
+  margin-top:4px;padding:10px 26px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:var(--rs);
+  font-family:var(--fontUI);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.25s;
+  box-shadow:0 0 24px rgba(var(--accentRgb),0.3);
+  letter-spacing:0.3px;
+}
+#start-screen-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 36px rgba(var(--accentRgb),0.45);
+}
+
+/* Quote inside placeholder */
+#quote-box{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  text-align:center;z-index:9;
+  max-width:420px;padding:0 20px;
+  opacity:0;animation:fadeIn 1s 0.5s forwards;
+  pointer-events:none;
+}
+@keyframes fadeIn{to{opacity:1;}}
+#quote-text{
+  font-family:var(--fontSerif);font-style:italic;
+  font-size:13px;color:var(--textDim);line-height:1.7;
+}
+#quote-author{font-size:10px;color:var(--textDim);margin-top:6px;letter-spacing:0.5px;}
+
+#screen-video{display:none;width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
+
+/* ── CAM PIP ── */
+#cam-pip{
+  position:absolute;border-radius:14px;overflow:hidden;
+  border:2px solid var(--border2);cursor:move;display:none;z-index:10;background:#000;
+  box-shadow:0 10px 40px rgba(0,0,0,0.7);transition:border-color 0.2s,box-shadow 0.2s;
+}
+#cam-pip:hover{border-color:var(--accent);box-shadow:0 10px 40px rgba(var(--accentRgb),0.2);}
+#cam-pip video{width:100%;height:100%;object-fit:cover;}
+#cam-pip.bottom-right{bottom:14px;right:14px;}
+#cam-pip.bottom-left{bottom:14px;left:14px;}
+#cam-pip.top-right{top:54px;right:14px;}
+#cam-pip.top-left{top:54px;left:14px;}
+#cam-pip.size-sm{width:120px;height:84px;}
+#cam-pip.size-md{width:172px;height:120px;}
+#cam-pip.size-lg{width:232px;height:162px;}
+
+/* ── RIGHT PANEL ── */
+#right-panel{
+  width:272px;background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+#right-panel::-webkit-scrollbar{width:3px;}
+#right-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+.rpanel-section{padding:13px 14px;border-bottom:1px solid var(--border);}
+.section-label{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--textDim);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.section-label::before{
+  content:'';display:block;width:2px;height:9px;
+  background:linear-gradient(180deg,var(--accent),transparent);border-radius:1px;
+}
+
+/* ── TIMER ── */
+.mode-btns{display:flex;gap:4px;margin-bottom:10px;}
+.mode-btn{
+  flex:1;padding:5px;border-radius:var(--rs);
+  border:1px solid var(--border);background:transparent;
+  color:var(--textDim);font-family:var(--fontUI);font-size:10px;font-weight:600;
+  cursor:pointer;text-align:center;transition:all 0.2s;
+}
+.mode-btn:hover{border-color:var(--border2);color:var(--textMid);}
+.mode-btn.active{
+  background:rgba(var(--accentRgb),0.12);
+  border-color:rgba(var(--accentRgb),0.4);color:var(--accent2);
+}
+#custom-input-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+#custom-mins{
+  width:64px;padding:4px 8px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--rs);
+  color:var(--text);font-family:var(--fontMono);font-size:12px;
+  text-align:center;outline:none;
+}
+#custom-mins:focus{border-color:var(--accent);}
+#timer-display{text-align:center;padding:4px 0;}
+#timer-digits{
+  font-size:56px;font-weight:700;font-family:var(--fontMono);
+  color:var(--text);letter-spacing:3px;line-height:1;
+  text-shadow:0 0 48px rgba(var(--accentRgb),0.25);
+  transition:color 0.5s;
+}
+#timer-digits.break-time{color:var(--amber);text-shadow:0 0 48px rgba(245,158,11,0.25);}
+#timer-mode-label{font-size:10px;color:var(--accent2);margin-top:6px;font-weight:500;letter-spacing:0.5px;}
+#pom-dots{display:flex;gap:5px;justify-content:center;margin-top:8px;}
+.pom-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all 0.3s;}
+.pom-dot.done{background:var(--accent2);}
+.pom-dot.current{background:var(--accent);box-shadow:0 0 8px rgba(var(--accentRgb),0.6);}
+#timer-progress{height:2px;background:var(--border);border-radius:2px;margin:10px 0 8px;}
+#timer-progress-bar{
+  height:2px;border-radius:2px;width:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width 0.8s linear;
+}
+#timer-controls{display:flex;gap:5px;justify-content:center;}
+#timer-controls button{
+  padding:7px 16px;border-radius:var(--rs);
+  border:1px solid var(--border2);background:var(--bg3);
+  color:var(--textMid);font-family:var(--fontUI);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+#timer-controls button:hover{border-color:var(--border2);color:var(--text);background:var(--bg4);}
+#btn-start.active-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color:transparent;color:#fff;
+  box-shadow:0 0 16px rgba(var(--accentRgb),0.4);
+}
+
+/* ── LOFI PLAYER ── */
+.lofi-tracks{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.lofi-track{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 9px;background:var(--bg3);border-radius:var(--rs);
+  border:1px solid var(--border);cursor:pointer;transition:all 0.2s;
+}
+.lofi-track:hover{border-color:var(--border2);background:var(--bg4);}
+.lofi-track.playing{
+  border-color:rgba(var(--accentRgb),0.5);
+  background:rgba(var(--accentRgb),0.07);
+}
+.track-icon{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  background:var(--bg4);border:1px solid var(--border2);
+  transition:all 0.2s;
+}
+.lofi-track.playing .track-icon{
+  background:rgba(var(--accentRgb),0.15);border-color:rgba(var(--accentRgb),0.4);
+}
+.track-info{flex:1;min-width:0;}
+.track-name{font-size:11px;font-weight:600;color:var(--textMid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lofi-track.playing .track-name{color:var(--accent2);}
+.track-src{font-size:9px;color:var(--textDim);}
+.track-play-icon{font-size:11px;color:var(--textDim);transition:color 0.2s;flex-shrink:0;}
+.lofi-track.playing .track-play-icon{color:var(--accent2);}
+
+.now-playing-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;background:rgba(var(--accentRgb),0.06);
+  border-radius:var(--rs);border:1px solid rgba(var(--accentRgb),0.15);
+  margin-bottom:10px;
+}
+.np-eq{display:flex;align-items:flex-end;gap:2px;height:14px;flex-shrink:0;}
+.np-eq span{
+  width:3px;background:var(--accent2);border-radius:2px;
+  animation:eq 0.8s ease-in-out infinite alternate;
+}
+.np-eq span:nth-child(1){animation-delay:0s;height:6px;}
+.np-eq span:nth-child(2){animation-delay:0.15s;height:10px;}
+.np-eq span:nth-child(3){animation-delay:0.3s;height:7px;}
+.np-eq span:nth-child(4){animation-delay:0.1s;height:12px;}
+.np-eq.paused span{animation-play-state:paused;}
+@keyframes eq{to{height:14px;}}
+.np-label{flex:1;font-size:10px;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.np-label.off{color:var(--textDim);}
+.vol-row{display:flex;align-items:center;gap:8px;}
+.vol-icon{font-size:12px;color:var(--textDim);}
+#vol-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:3px;border-radius:2px;
+  background:linear-gradient(to right, var(--accent) 0%, var(--accent) 70%, var(--border2) 70%);
+  outline:none;cursor:pointer;
+}
+#vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--accent2);cursor:pointer;
+  box-shadow:0 0 8px rgba(var(--accentRgb),0.5);
+}
+
+/* custom lofi input */
+.custom-url-row{display:flex;gap:5px;margin-top:8px;}
+#custom-lofi-input{
+  flex:1;padding:5px 8px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--rs);
+  color:var(--text);font-family:var(--fontUI);font-size:10px;outline:none;
+}
+#custom-lofi-input:focus{border-color:var(--accent);}
+#custom-lofi-input::placeholder{color:var(--textDim);}
+#add-lofi-btn{
+  padding:5px 9px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--rs);color:var(--accent2);font-size:12px;cursor:pointer;
+  transition:all 0.2s;font-weight:600;
+}
+#add-lofi-btn:hover{border-color:var(--accent);background:rgba(var(--accentRgb),0.1);}
+
+/* ── AMBIENT SOUNDS ── */
+.ambient-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.amb-btn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;background:var(--bg3);border-radius:var(--rs);
+  border:1px solid var(--border);cursor:pointer;transition:all 0.2s;
+}
+.amb-btn:hover{border-color:var(--border2);background:var(--bg4);}
+.amb-btn.active{
+  border-color:rgba(var(--accentRgb),0.5);
+  background:rgba(var(--accentRgb),0.08);
+}
+.amb-icon{font-size:16px;}
+.amb-label{font-size:9px;color:var(--textDim);font-weight:600;letter-spacing:0.3px;}
+.amb-btn.active .amb-label{color:var(--accent2);}
+
+/* ── TASKS ── */
+#task-input-row{display:flex;gap:5px;margin-bottom:8px;}
+#task-input{
+  flex:1;padding:7px 10px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--rs);
+  color:var(--text);font-family:var(--fontUI);font-size:12px;outline:none;
+  transition:border-color 0.2s;
+}
+#task-input:focus{border-color:var(--accent);}
+#task-input::placeholder{color:var(--textDim);}
+#add-task-btn{
+  padding:7px 12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:var(--rs);color:#fff;font-size:16px;
+  line-height:1;cursor:pointer;transition:all 0.2s;font-weight:700;
+}
+#add-task-btn:hover{opacity:0.9;transform:scale(1.05);}
+#task-list{
+  display:flex;flex-direction:column;gap:3px;
+  max-height:190px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+.task-item{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 9px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:var(--rs);
+  transition:all 0.2s;
+}
+.task-item:hover{border-color:var(--border2);}
+.task-item.active-task{
+  border-color:rgba(var(--accentRgb),0.4);
+  background:rgba(var(--accentRgb),0.05);
+}
+.task-item.done{opacity:0.35;}
+.task-cb{
+  width:15px;height:15px;border-radius:4px;
+  border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+}
+.task-cb.checked{background:var(--green);border-color:var(--green);color:#fff;font-size:9px;}
+.task-text{flex:1;font-size:11px;color:var(--textMid);cursor:pointer;line-height:1.4;}
+.task-item.done .task-text{text-decoration:line-through;color:var(--textDim);}
+.task-del{color:var(--textDim);cursor:pointer;font-size:15px;padding:0 2px;transition:color 0.2s;}
+.task-del:hover{color:var(--red);}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.stats-grid-4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.stats-grid-4 .stat-val{font-size:17px;}
+.stats-grid-4 .stat-card{padding:9px 2px;}
+.stat-card{
+  background:var(--bg3);border-radius:var(--rs);
+  padding:10px 4px;text-align:center;border:1px solid var(--border);
+  transition:border-color 0.3s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-val{font-size:22px;font-weight:700;font-family:var(--fontMono);color:var(--accent2);}
+.stat-val.green{color:var(--green);}
+.stat-val.amber{color:var(--amber);}
+.stat-lbl{font-size:9px;color:var(--textDim);margin-top:3px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+
+/* ── THEMES ── */
+.theme-grid{display:flex;gap:7px;flex-wrap:wrap;}
+.theme-dot{
+  width:26px;height:26px;border-radius:8px;cursor:pointer;
+  border:2px solid transparent;transition:all 0.2s;
+  position:relative;overflow:hidden;
+}
+.theme-dot::after{content:'';position:absolute;inset:2px;border-radius:5px;}
+.theme-dot.active{border-color:var(--text);transform:scale(1.1);}
+.theme-dot[data-t="default"]::after{background:linear-gradient(135deg,#6366f1,#818cf8);}
+.theme-dot[data-t="forest"]::after{background:linear-gradient(135deg,#16a34a,#4ade80);}
+.theme-dot[data-t="sunset"]::after{background:linear-gradient(135deg,#ea580c,#fb923c);}
+.theme-dot[data-t="sakura"]::after{background:linear-gradient(135deg,#db2777,#f472b6);}
+.theme-dot[data-t="ocean"]::after{background:linear-gradient(135deg,#0891b2,#38bdf8);}
+.theme-label{font-size:10px;color:var(--textDim);margin-top:1px;}
+
+/* ── THIS YEAR / DAYS LEFT ── */
+.year-card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,var(--bg3),var(--bg4));
+  border:1px solid var(--border2);border-radius:12px;
+  padding:14px 14px 12px;text-align:center;
+}
+.year-card::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:radial-gradient(circle at 85% -10%, rgba(var(--accentRgb),0.18), transparent 60%);
+}
+.year-days{
+  position:relative;z-index:1;
+  font-family:var(--fontMono);font-weight:700;font-size:34px;line-height:1;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.year-days-lbl{position:relative;z-index:1;font-size:10px;color:var(--textMid);margin-top:3px;letter-spacing:0.3px;}
+.year-progress-track{
+  position:relative;z-index:1;height:5px;border-radius:4px;background:var(--border);
+  margin:10px 0 6px;overflow:hidden;
+}
+.year-progress-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  box-shadow:0 0 10px rgba(var(--accentRgb),0.5);
+  transition:width 0.6s ease;
+}
+.year-progress-pct{position:relative;z-index:1;font-size:9px;color:var(--textDim);font-weight:600;letter-spacing:0.4px;}
+
+/* ── STREAK BANNER ── */
+.streak-banner{
+  display:flex;align-items:center;gap:9px;
+  margin-top:8px;padding:9px 11px;border-radius:var(--rs);
+  background:linear-gradient(120deg,rgba(var(--accentRgb),0.1),transparent);
+  border:1px solid rgba(var(--accentRgb),0.25);
+}
+.streak-flame{font-size:18px;filter:drop-shadow(0 0 6px rgba(245,158,11,0.6));animation:flicker 1.6s ease-in-out infinite;}
+@keyframes flicker{0%,100%{transform:scale(1) rotate(-2deg);}50%{transform:scale(1.08) rotate(2deg);}}
+.streak-text{flex:1;font-size:10px;color:var(--textMid);}
+.streak-num{font-family:var(--fontMono);font-weight:700;color:var(--amber);font-size:13px;}
+
+/* ── DAILY GOAL ── */
+.goal-wrap{margin-top:9px;}
+.goal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.goal-head span{font-size:9px;color:var(--textDim);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;}
+#goal-mins-input{
+  width:46px;padding:2px 5px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:5px;color:var(--accent2);font-family:var(--fontMono);font-size:10px;text-align:center;outline:none;
+}
+#goal-mins-input:focus{border-color:var(--accent);}
+.goal-track{height:6px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);overflow:hidden;}
+.goal-fill{
+  height:100%;border-radius:4px;width:0%;
+  background:linear-gradient(90deg,var(--green),var(--accent2));
+  transition:width 0.6s ease;position:relative;
+}
+.goal-fill.full{background:linear-gradient(90deg,var(--accent),var(--rose));}
+.goal-pct{font-size:9px;color:var(--textDim);margin-top:4px;text-align:right;}
+
+/* ── STREAM OVERLAY (multi-widget HUD) ── */
+#stream-hud{position:absolute;inset:0;z-index:8;display:none;pointer-events:none;}
+#stream-hud.show{display:block;}
+@keyframes hudIn{from{opacity:0;transform:translateY(-6px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+.hud-card{
+  padding:11px 13px;border-radius:14px;
+  background:rgba(5,7,14,0.52);backdrop-filter:blur(28px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter:blur(28px) saturate(160%) brightness(1.08);
+  border:1px solid rgba(255,255,255,0.13);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(var(--accentRgb),0.12) inset;
+  font-family:var(--fontUI);
+  /* text always crisp on translucent bg */
+  -webkit-font-smoothing:antialiased;
+}
+.hud-widget{display:none;}
+.hud-widget.on{display:block;animation:hudIn 0.35s ease;}
+
+.hud-corner{position:absolute;display:flex;flex-direction:column;gap:10px;max-width:225px;}
+#hud-tl{top:14px;left:14px;}
+#hud-tr{top:14px;right:14px;align-items:flex-end;}
+#hud-bl{bottom:14px;left:14px;}
+#hud-br{bottom:14px;right:14px;align-items:flex-end;}
+
+/* ── DRAGGABLE HUD WIDGETS ── */
+/* Once positioned, a widget escapes its corner flexbox and floats freely via left/top */
+.hud-widget{position:relative;}
+.hud-widget.dragging{transition:none !important;cursor:grabbing !important;z-index:50;}
+.hud-widget.positioned{
+  position:absolute !important;top:0;left:0;right:auto;bottom:auto;max-width:none;
+}
+.hud-card{cursor:grab;position:relative;}
+.hud-card:active{cursor:grabbing;}
+.hud-card.drag-active{
+  box-shadow:0 14px 40px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(var(--accentRgb),0.55) inset;
+  transition:none;
+}
+#stream-hud.show{pointer-events:none;}
+#stream-hud.show .hud-card{pointer-events:auto;}
+.hud-drag-hint{
+  position:absolute;top:-7px;right:-7px;width:16px;height:16px;border-radius:50%;
+  background:rgba(var(--accentRgb),0.85);color:#fff;font-size:9px;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.2s;pointer-events:none;
+}
+.hud-card:hover .hud-drag-hint{opacity:1;}
+
+/* total study hours widget */
+.hud-hours-card{min-width:150px;text-align:left;}
+.hud-hours-head{display:flex;align-items:baseline;gap:7px;}
+.hud-hours-num{
+  font-family:var(--fontMono);font-weight:700;font-size:26px;line-height:1;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 8px rgba(var(--accentRgb),0.35));
+}
+.hud-hours-lbl{font-size:9.5px;color:rgba(255,255,255,0.8);}
+.hud-hours-sub{font-size:9px;color:rgba(255,255,255,0.6);margin-top:5px;}
+
+/* live badge shared */
+.hud-live{
+  display:flex;align-items:center;gap:4px;font-size:8px;font-weight:700;letter-spacing:0.6px;
+  color:var(--red);text-transform:uppercase;flex-shrink:0;
+}
+.hud-live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);animation:blink 1.4s ease-in-out infinite;}
+
+/* clock widget */
+.hud-clock-card{min-width:150px;text-align:right;}
+.hud-clock-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px;}
+.hud-clock-time{font-family:var(--fontMono);font-size:19px;font-weight:700;color:#fff;letter-spacing:0.5px;text-shadow:0 0 20px rgba(var(--accentRgb),0.5);}
+.hud-clock-date{font-size:10px;color:rgba(255,255,255,0.75);}
+
+/* days-left widget */
+.hud-days-card{text-align:left;min-width:150px;}
+.hud-days-head{display:flex;align-items:baseline;gap:7px;}
+.hud-days-num{
+  font-family:var(--fontMono);font-weight:700;font-size:26px;line-height:1;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 8px rgba(var(--accentRgb),0.4));
+}
+.hud-days-lbl{font-size:9.5px;color:rgba(255,255,255,0.8);}
+.hud-mini-track{height:4px;border-radius:3px;background:rgba(255,255,255,0.15);margin-top:7px;overflow:hidden;}
+.hud-mini-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.6s ease;}
+
+/* timer ring widget */
+.hud-timer-card{display:flex;align-items:center;justify-content:center;width:84px;height:84px;padding:0;position:relative;}
+.hud-ring{position:absolute;inset:0;transform:rotate(-90deg);}
+.hud-ring-track{fill:none;stroke:rgba(255,255,255,0.12);stroke-width:6;}
+.hud-ring-fill{fill:none;stroke:url(#hudRingGrad);stroke-width:6;stroke-linecap:round;stroke-dasharray:213.6;stroke-dashoffset:213.6;transition:stroke-dashoffset 0.8s linear;}
+.hud-ring-center{position:relative;text-align:center;z-index:1;}
+.hud-ring-time{font-family:var(--fontMono);font-weight:700;font-size:14px;color:#fff;text-shadow:0 0 12px rgba(var(--accentRgb),0.5);}
+.hud-ring-label{font-size:8px;color:rgba(255,255,255,0.75);margin-top:1px;text-transform:uppercase;letter-spacing:0.4px;}
+
+/* tasks widget */
+.hud-tasks-card{min-width:175px;}
+.hud-tasks-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:rgba(255,255,255,0.95);font-weight:600;margin-bottom:6px;}
+.hud-tasks-head span:last-child{font-family:var(--fontMono);color:var(--accent2);}
+.hud-tasks-track{height:4px;border-radius:3px;background:rgba(255,255,255,0.15);overflow:hidden;margin-bottom:7px;}
+.hud-tasks-fill{height:100%;border-radius:3px;width:0%;background:linear-gradient(90deg,var(--green),var(--accent2));transition:width 0.6s ease;}
+.hud-tasks-list{display:flex;flex-direction:column;gap:4px;}
+.hud-task-row{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,0.85);}
+.hud-task-row.done{color:rgba(255,255,255,0.5);text-decoration:line-through;}
+.hud-task-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;background:var(--accent2);}
+.hud-task-row.done .hud-task-dot{background:var(--green);}
+.hud-task-txt{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+
+/* weekly graph widget */
+.hud-graph-card{min-width:175px;}
+.hud-graph-head{font-size:10px;color:rgba(255,255,255,0.95);font-weight:600;margin-bottom:8px;}
+.hud-graph-bars{display:flex;align-items:flex-end;gap:5px;height:42px;}
+.hud-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;}
+.hud-bar-fill{
+  width:100%;border-radius:3px 3px 1px 1px;min-height:3px;
+  background:linear-gradient(180deg,var(--accent2),var(--accent));
+}
+.hud-bar-fill.today{background:linear-gradient(180deg,#fff,var(--accent2));box-shadow:0 0 8px rgba(var(--accentRgb),0.7);}
+.hud-bar-lbl{font-size:7px;color:rgba(255,255,255,0.6);font-weight:600;}
+
+/* quote ticker widget */
+#widget-quotes{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:88%;max-width:480px;}
+.hud-quote-card{text-align:center;}
+.hud-quote-text{font-family:var(--fontSerif);font-style:italic;font-size:12px;color:rgba(255,255,255,0.95);line-height:1.5;}
+.hud-quote-author{font-size:9px;color:rgba(255,255,255,0.65);margin-top:4px;letter-spacing:0.3px;}
+
+/* ── MOOD WIDGET ── */
+.hud-mood-card{min-width:190px;}
+.hud-mood-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.7);margin-bottom:8px;}
+.hud-mood-emojis{display:flex;gap:8px;justify-content:center;}
+.hud-mood-btn{font-size:18px;cursor:pointer;opacity:0.6;transition:all 0.2s;filter:grayscale(50%);user-select:none;pointer-events:auto;}
+.hud-mood-btn:hover{opacity:1;transform:scale(1.2);filter:grayscale(0%);}
+.hud-mood-btn.selected{opacity:1;transform:scale(1.25);filter:grayscale(0%);filter:drop-shadow(0 0 6px rgba(var(--accentRgb),0.7));}
+
+/* ── WATER WIDGET ── */
+.hud-water-card{min-width:180px;}
+.hud-water-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.hud-water-icon{font-size:20px;}
+.hud-water-info{flex:1;}
+.hud-water-count{font-family:var(--fontMono);font-size:14px;font-weight:700;color:#fff;text-shadow:0 0 12px rgba(56,189,248,0.5);}
+.hud-water-sub{font-size:9px;color:rgba(255,255,255,0.6);margin-top:1px;}
+.hud-water-btn{
+  padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(var(--accentRgb),0.2);color:var(--accent2);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;pointer-events:auto;
+}
+.hud-water-btn:hover{background:rgba(var(--accentRgb),0.4);border-color:rgba(var(--accentRgb),0.5);}
+.hud-water-dots{display:flex;gap:5px;flex-wrap:wrap;}
+.hud-water-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);transition:all 0.3s;}
+.hud-water-dot.filled{background:linear-gradient(135deg,#38bdf8,#0891b2);box-shadow:0 0 6px rgba(56,189,248,0.5);}
+
+/* ── POM COUNT WIDGET ── */
+.hud-pomcount-card{min-width:90px;text-align:center;padding:12px 16px;}
+.hud-pomcount-num{font-family:var(--fontMono);font-size:36px;font-weight:700;line-height:1;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 8px rgba(var(--accentRgb),0.4));}
+.hud-pomcount-lbl{font-size:8.5px;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.4;letter-spacing:0.4px;}
+
+/* ── STREAK HUD WIDGET ── */
+.hud-streak-card{min-width:160px;text-align:center;}
+.hud-streak-top{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+.hud-streak-flame{font-size:22px;filter:drop-shadow(0 0 8px rgba(245,158,11,0.7));animation:flicker 1.6s ease-in-out infinite;}
+.hud-streak-num{font-family:var(--fontMono);font-weight:700;font-size:32px;line-height:1;color:var(--amber);text-shadow:0 0 20px rgba(245,158,11,0.5);}
+.hud-streak-lbl{font-size:9px;color:rgba(255,255,255,0.65);letter-spacing:0.5px;text-transform:uppercase;}
+.hud-note-card{min-width:200px;}
+.hud-note-head{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.7);margin-bottom:6px;}
+.hud-note-area{
+  width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+  border-radius:8px;color:rgba(255,255,255,0.95);font-family:var(--fontUI);font-size:11px;
+  padding:7px 9px;resize:none;outline:none;height:72px;line-height:1.5;
+  pointer-events:auto;
+}
+.hud-note-area:focus{border-color:rgba(var(--accentRgb),0.5);background:rgba(255,255,255,0.1);}
+.hud-note-area::placeholder{color:rgba(255,255,255,0.35);}
+
+/* ── PARTICLES (idle screen ambience) ── */
+#particles{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.particle{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--accentRgb),0.5),transparent 70%);
+  animation:floatUp linear infinite;opacity:0;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) translateX(0);opacity:0;}
+  10%{opacity:0.5;}
+  90%{opacity:0.3;}
+  100%{transform:translateY(-420px) translateX(var(--drift,20px));opacity:0;}
+}
+
+/* ── HUD widget toggle chips (reuses ambient-grid look) ── */
+.hud-widget-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:9px;}
+
+/* ── MUSIC track delete / restore ── */
+.track-del{
+  color:var(--textDim);font-size:14px;cursor:pointer;flex-shrink:0;
+  padding:0 3px;border-radius:4px;transition:all 0.2s;line-height:1;
+}
+.track-del:hover{color:var(--red);background:rgba(239,68,68,0.12);}
+#restore-defaults-row{
+  display:none;align-items:center;justify-content:center;gap:5px;
+  margin-top:7px;font-size:9.5px;color:var(--accent2);cursor:pointer;
+  padding:5px;border-radius:6px;border:1px dashed var(--border2);transition:all 0.2s;
+}
+#restore-defaults-row:hover{border-color:var(--accent);background:rgba(var(--accentRgb),0.08);}
+
+/* ── CAMERA ── */
+.cam-controls{display:flex;flex-direction:column;gap:7px;}
+.ctrl-row{display:flex;align-items:center;gap:8px;}
+.ctrl-label{font-size:10px;color:var(--textDim);width:52px;flex-shrink:0;font-weight:500;}
+.ctrl-btns{display:flex;gap:4px;flex-wrap:wrap;}
+.ctrl-btn{
+  padding:4px 9px;border-radius:var(--rs);
+  border:1px solid var(--border);background:transparent;
+  color:var(--textDim);font-family:var(--fontUI);font-size:10px;
+  cursor:pointer;transition:all 0.2s;
+}
+.ctrl-btn.sel{background:rgba(var(--accentRgb),0.12);border-color:rgba(var(--accentRgb),0.4);color:var(--accent2);}
+.ctrl-btn:hover{border-color:var(--border2);color:var(--textMid);}
+.cam-toggle{
+  width:100%;padding:7px;border-radius:var(--rs);
+  border:1px solid var(--border2);background:var(--bg3);
+  color:var(--textMid);font-family:var(--fontUI);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+.cam-toggle:hover{border-color:rgba(var(--accentRgb),0.4);color:var(--text);}
+.cam-toggle.on{border-color:#22c55e55;color:var(--green);background:#0a1a10;}
+
+/* ── HISTORY ── */
+#history-list{
+  display:flex;flex-direction:column;gap:4px;
+  max-height:130px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+.hist-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 9px;background:var(--bg3);border-radius:var(--rs);border:1px solid var(--border);
+}
+.hist-date{font-size:10px;color:var(--textDim);}
+.hist-stats{font-size:10px;color:var(--textMid);}
+.hist-tasks{font-size:10px;color:var(--green);font-weight:600;}
+
+/* ── SESSION LOG ── */
+#session-log{
+  max-height:80px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+.log-line{
+  font-size:9px;font-family:var(--fontMono);
+  padding:3px 0;border-bottom:1px solid var(--border);
+  display:flex;gap:7px;
+}
+.log-time{color:var(--accent);flex-shrink:0;}
+.log-msg{color:var(--textDim);}
+
+/* ── TASK LIBRARY ── */
+#task-library-panel{
+  background:var(--bg3);border-radius:var(--rs);border:1px solid var(--border2);
+  margin-top:8px;overflow:hidden;max-height:0;transition:max-height 0.3s ease;
+}
+#task-library-panel.open{max-height:260px;}
+.tlib-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;background:var(--bg4);border-bottom:1px solid var(--border);
+}
+.tlib-title{font-size:10px;font-weight:700;color:var(--textMid);letter-spacing:0.3px;}
+#tlib-save-btn{
+  font-size:10px;color:var(--accent2);cursor:pointer;padding:2px 7px;
+  border-radius:5px;border:1px solid rgba(var(--accentRgb),0.3);background:rgba(var(--accentRgb),0.08);
+  transition:all 0.2s;font-weight:600;
+}
+#tlib-save-btn:hover{background:rgba(var(--accentRgb),0.2);}
+#tlib-list{
+  overflow-y:auto;max-height:190px;padding:5px;display:flex;flex-direction:column;gap:3px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+.tlib-item{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px;border-radius:6px;border:1px solid transparent;
+  background:var(--bg3);cursor:pointer;transition:all 0.18s;
+}
+.tlib-item:hover{background:rgba(var(--accentRgb),0.1);border-color:rgba(var(--accentRgb),0.3);}
+.tlib-item-icon{font-size:11px;flex-shrink:0;}
+.tlib-item-text{flex:1;font-size:11px;color:var(--textMid);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.tlib-item-del{color:var(--textDim);font-size:13px;cursor:pointer;padding:0 2px;transition:color 0.2s;flex-shrink:0;}
+.tlib-item-del:hover{color:var(--red);}
+.tlib-empty{font-size:10px;color:var(--textDim);text-align:center;padding:12px;line-height:1.6;}
+#tlib-toggle-row{
+  display:flex;align-items:center;gap:5px;cursor:pointer;
+  font-size:10px;color:var(--textDim);margin-top:5px;margin-bottom:2px;
+  transition:color 0.2s;user-select:none;
+}
+#tlib-toggle-row:hover{color:var(--accent2);}
+#tlib-toggle-arrow{transition:transform 0.25s;display:inline-block;}
+#tlib-toggle-row.open #tlib-toggle-arrow{transform:rotate(90deg);}
+
+/* ── BOTTOM BAR ── */
+#bottom-bar{
+  padding:0 16px;height:34px;flex-shrink:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;gap:10px;align-items:center;
+}
+#bottom-bar .pill{font-size:9px;}
+#bottom-log{
+  flex:1;font-size:9px;color:var(--textDim);font-family:var(--fontMono);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.bsep{color:var(--border2);}
+#bottom-now-playing{
+  font-size:9px;color:var(--textDim);font-family:var(--fontMono);
+  max-width:160px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+
+/* ── MISC ── */
+input[type=range]:focus{outline:none;}
+</style>
+</head>
+<body>
+
+<!-- hidden audio elements -->
+<audio id="lofi-audio" loop></audio>
+<!-- ambient sounds now use Web Audio API — no external URLs needed -->
+
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">◈</div>
+    StudyStream
+  </div>
+  <div class="topbar-center">
+    <div id="clock-display">00:00:00</div>
+    <div id="date-display">—</div>
+  </div>
+  <div class="topbar-right">
+    <span id="current-task-label">No active task</span>
+    <div class="pills">
+      <span class="pill study" id="mode-pill">Study</span>
+      <span class="pill cam-off" id="cam-pill">Cam Off</span>
+      <span class="pill live" id="stream-pill" style="display:none;">● Live</span>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="screen-area">
+    <div id="particles"></div>
+    <div id="stream-hud">
+      <svg width="0" height="0" style="position:absolute;">
+        <defs>
+          <linearGradient id="hudRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--accent)"/>
+            <stop offset="100%" stop-color="var(--accent2)"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div class="hud-corner" id="hud-tl">
+        <div class="hud-widget on" id="widget-days">
+          <div class="hud-card hud-days-card">
+            <span class="hud-drag-hint">⠿</span>
+            <div class="hud-days-head">
+              <div class="hud-days-num" id="hudw-days-num">—</div>
+              <div class="hud-days-lbl">days left in <span id="hudw-year-num"></span></div>
+            </div>
+            <div class="hud-mini-track"><div class="hud-mini-fill" id="hudw-year-fill"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-corner" id="hud-tr">
+        <div class="hud-widget on" id="widget-clock">
+          <div class="hud-card hud-clock-card">
+            <span class="hud-drag-hint">⠿</span>
+            <div class="hud-clock-top">
+              <div class="hud-live"><span class="hud-live-dot"></span>LIVE</div>
+              <div class="hud-clock-time" id="hudw-clock">00:00:00</div>
+            </div>
+            <div class="hud-clock-date" id="hudw-date">—</div>
+          </div>
+        </div>
+        <div class="hud-widget on" id="widget-timer">
+          <div class="hud-card hud-timer-card">
+            <span class="hud-drag-hint">⠿</span>
+            <svg class="hud-ring" viewBox="0 0 80 80">
+              <circle class="hud-ring-track" cx="40" cy="40" r="34"></circle>
+              <circle class="hud-ring-fill" id="hudw-ring" cx="40" cy="40" r="34"></circle>
+            </svg>
+            <div class="hud-ring-center">
+              <div class="hud-ring-time" id="hudw-timer">25:00</div>
+              <div class="hud-ring-label" id="hudw-timer-lbl">Focus</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-corner" id="hud-bl">
+        <div class="hud-widget on" id="widget-tasks">
+          <div class="hud-card hud-tasks-card">
+            <span class="hud-drag-hint">⠿</span>
+            <div class="hud-tasks-head"><span>✅ Tasks Today</span><span id="hudw-tasks-count">0/0</span></div>
+            <div class="hud-tasks-track"><div class="hud-tasks-fill" id="hudw-tasks-fill"></div></div>
+            <div class="hud-tasks-list" id="hudw-tasks-list"></div>
+          </div>
+        </div>
+        <div class="hud-widget on" id="widget-hours">
+          <div class="hud-card hud-hours-card">
+            <span class="hud-drag-hint">⠿</span>
+            <div class="hud-hours-head">
+              <div class="hud-hours-num" id="hudw-hours-num">0h</div>
+              <div class="hud-hours-lbl">total study time</div>
+            </div>
+            <div class="hud-hours-sub" id="hudw-hours-sub">across 0 days</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-corner" id="hud-br">
+        <div class="hud-widget on" id="widget-graph">
+          <div class="hud-card hud-graph-card">
+            <span class="hud-drag-hint">⠿</span>
+            <div class="hud-graph-head">📊 Weekly Focus</div>
+            <div class="hud-graph-bars" id="hudw-graph-bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-widget on" id="widget-quotes">
+        <div class="hud-card hud-quote-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-quote-text" id="hudw-quote-text"></div>
+          <div class="hud-quote-author" id="hudw-quote-author"></div>
+        </div>
+      </div>
+
+      <!-- NEW WIDGETS -->
+      <div class="hud-widget" id="widget-mood" style="position:absolute;top:14px;left:50%;transform:translateX(-50%);">
+        <div class="hud-card hud-mood-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-mood-label">Mood Check</div>
+          <div class="hud-mood-emojis">
+            <span class="hud-mood-btn" data-mood="5" onclick="setMood(5,this)" title="Amazing">😄</span>
+            <span class="hud-mood-btn" data-mood="4" onclick="setMood(4,this)" title="Good">🙂</span>
+            <span class="hud-mood-btn" data-mood="3" onclick="setMood(3,this)" title="Okay">😐</span>
+            <span class="hud-mood-btn" data-mood="2" onclick="setMood(2,this)" title="Tired">😔</span>
+            <span class="hud-mood-btn" data-mood="1" onclick="setMood(1,this)" title="Burnt out">😫</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-widget" id="widget-water" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);">
+        <div class="hud-card hud-water-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-water-row">
+            <span class="hud-water-icon">💧</span>
+            <div class="hud-water-info">
+              <div class="hud-water-count" id="hudw-water-count">0 / 8</div>
+              <div class="hud-water-sub">glasses today</div>
+            </div>
+            <button class="hud-water-btn" onclick="addWater()">+</button>
+          </div>
+          <div class="hud-water-dots" id="hudw-water-dots"></div>
+        </div>
+      </div>
+
+      <div class="hud-widget" id="widget-pom-count" style="position:absolute;top:14px;left:50%;transform:translateX(calc(-50% - 120px));">
+        <div class="hud-card hud-pomcount-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-pomcount-num" id="hudw-pom-count">0</div>
+          <div class="hud-pomcount-lbl">pomodoros<br>today</div>
+        </div>
+      </div>
+
+      <div class="hud-widget" id="widget-note" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);">
+        <div class="hud-card hud-note-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-note-head">📝 Quick Note</div>
+          <textarea class="hud-note-area" id="hudw-note" placeholder="Type a note..." onchange="saveNote(this.value)" oninput="saveNote(this.value)"></textarea>
+        </div>
+      </div>
+
+      <div class="hud-widget" id="widget-streak" style="position:absolute;top:14px;left:50%;transform:translateX(calc(-50% + 120px));">
+        <div class="hud-card hud-streak-card">
+          <span class="hud-drag-hint">⠿</span>
+          <div class="hud-streak-top">
+            <span class="hud-streak-flame">🔥</span>
+            <span class="hud-streak-num" id="hudw-streak-num">0</span>
+          </div>
+          <div class="hud-streak-lbl">day streak</div>
+        </div>
+      </div>
+
+    </div>
+    <div id="screen-placeholder">
+      <div class="ph-icon">🖥</div>
+      <div class="ph-title">No screen shared</div>
+      <div class="ph-sub">Share this browser window on Discord<br>to stream your study session</div>
+      <button id="start-screen-btn">Share Screen / Tab</button>
+    </div>
+    <div id="quote-box">
+      <div id="quote-text"></div>
+      <div id="quote-author"></div>
+    </div>
+    <video id="screen-video" autoplay muted></video>
+    <div id="cam-pip" class="bottom-right size-md">
+      <video id="cam-video" autoplay muted playsinline></video>
+    </div>
+  </div>
+
+  <div id="right-panel">
+
+    <!-- TIMER -->
+    <div class="rpanel-section">
+      <div class="section-label">Timer</div>
+      <div class="mode-btns">
+        <div class="mode-btn active" id="mode-pomodoro" onclick="setMode('pomodoro')">Pomodoro</div>
+        <div class="mode-btn" id="mode-custom" onclick="setMode('custom')">Custom</div>
+        <div class="mode-btn" id="mode-stopwatch" onclick="setMode('stopwatch')">Watch</div>
+      </div>
+      <div id="custom-input-row" style="display:none;">
+        <input type="number" id="custom-mins" min="1" max="180" value="45">
+        <span style="font-size:11px;color:var(--textDim);">min</span>
+      </div>
+      <div id="timer-display">
+        <div id="timer-digits">25:00</div>
+        <div id="timer-mode-label">Focus session</div>
+      </div>
+      <div id="pom-dots">
+        <div class="pom-dot current" id="dot-0"></div>
+        <div class="pom-dot" id="dot-1"></div>
+        <div class="pom-dot" id="dot-2"></div>
+        <div class="pom-dot" id="dot-3"></div>
+      </div>
+      <div id="timer-progress"><div id="timer-progress-bar"></div></div>
+      <div id="timer-controls">
+        <button id="btn-start" onclick="startTimer()">▶ Start</button>
+        <button id="btn-pause" onclick="pauseTimer()">⏸</button>
+        <button id="btn-reset" onclick="resetTimer()">↺</button>
+      </div>
+    </div>
+
+    <!-- LOFI PLAYER -->
+    <div class="rpanel-section">
+      <div class="section-label">Lofi Music</div>
+      <div class="now-playing-bar">
+        <div class="np-eq paused" id="np-eq">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="np-label off" id="np-label">Not playing</div>
+        <span id="np-toggle" onclick="toggleLofi()" style="cursor:pointer;font-size:14px;color:var(--textDim);transition:color 0.2s;" title="Play/Pause">⏯</span>
+      </div>
+      <div class="lofi-tracks" id="lofi-tracks"></div>
+      <div class="vol-row">
+        <span class="vol-icon">🔈</span>
+        <input type="range" id="vol-slider" min="0" max="100" value="70" oninput="setVol(this.value)">
+        <span class="vol-icon">🔊</span>
+      </div>
+      <div class="custom-url-row">
+        <input id="custom-lofi-input" placeholder="Stream URL (.mp3) or YouTube link..." type="text">
+        <button id="add-lofi-btn" onclick="addCustomLofi()">+</button>
+      </div>
+      <div id="restore-defaults-row" onclick="restoreDefaultTracks()">↺ Restore removed default tracks</div>
+    </div>
+
+    <!-- AMBIENT -->
+    <div class="rpanel-section">
+      <div class="section-label">Ambient Sounds</div>
+      <div class="ambient-grid">
+        <div class="amb-btn" id="amb-rain-btn" onclick="toggleAmb('rain')">
+          <span class="amb-icon">🌧</span>
+          <span class="amb-label">Rain</span>
+        </div>
+        <div class="amb-btn" id="amb-fire-btn" onclick="toggleAmb('fire')">
+          <span class="amb-icon">🔥</span>
+          <span class="amb-label">Fire</span>
+        </div>
+        <div class="amb-btn" id="amb-cafe-btn" onclick="toggleAmb('cafe')">
+          <span class="amb-icon">☕</span>
+          <span class="amb-label">Café</span>
+        </div>
+        <div class="amb-btn" id="amb-wind-btn" onclick="toggleAmb('wind')">
+          <span class="amb-icon">🌿</span>
+          <span class="amb-label">Wind</span>
+        </div>
+        <div class="amb-btn" id="amb-ocean-btn" onclick="toggleAmb('ocean')">
+          <span class="amb-icon">🌊</span>
+          <span class="amb-label">Ocean</span>
+        </div>
+        <div class="amb-btn" id="amb-night-btn" onclick="toggleAmb('night')">
+          <span class="amb-icon">🌙</span>
+          <span class="amb-label">Night</span>
+        </div>
+      </div>
+      <div class="vol-row" style="margin-top:8px;">
+        <span class="vol-icon">🔈</span>
+        <input type="range" id="amb-vol-slider" min="0" max="100" value="60" oninput="setAmbVol(this.value)">
+        <span class="vol-icon">🔊</span>
+      </div>
+    </div>
+    <div class="rpanel-section">
+      <div class="section-label">Tasks</div>
+      <div id="task-input-row">
+        <input id="task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()">
+        <button id="add-task-btn" onclick="addTask()">+</button>
+      </div>
+      <div id="tlib-toggle-row" onclick="toggleTaskLibrary()">
+        <span id="tlib-toggle-arrow">›</span>
+        <span>Task Library</span>
+        <span id="tlib-count-badge" style="margin-left:auto;font-size:9px;color:var(--accent2);font-weight:700;"></span>
+      </div>
+      <div id="task-library-panel">
+        <div class="tlib-header">
+          <span class="tlib-title">📚 Saved Tasks — click to add</span>
+          <span id="tlib-save-btn" onclick="saveCurrentToLibrary()">＋ Save current</span>
+        </div>
+        <div id="tlib-list"></div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="rpanel-section">
+      <div class="section-label">Today</div>
+      <div class="stats-grid stats-grid-4">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-sessions">0</div>
+          <div class="stat-lbl">Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val green" id="stat-tasks">0</div>
+          <div class="stat-lbl">Done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val amber" id="stat-focus">0m</div>
+          <div class="stat-lbl">Focus</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-total-hours">0h</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+      </div>
+      <div class="streak-banner">
+        <span class="streak-flame">🔥</span>
+        <span class="streak-text">Current streak: <span class="streak-num" id="streak-num">0</span> day(s)</span>
+      </div>
+      <div class="goal-wrap">
+        <div class="goal-head">
+          <span>Daily Goal</span>
+          <span><input type="number" id="goal-mins-input" value="120" min="10" step="10" onchange="setGoal(this.value)">m</span>
+        </div>
+        <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
+        <div class="goal-pct" id="goal-pct">0% of goal</div>
+      </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="rpanel-section">
+      <div class="section-label">Theme</div>
+      <div class="theme-grid">
+        <div style="text-align:center">
+          <div class="theme-dot active" data-t="default" onclick="setTheme('default',this)" title="Purple"></div>
+          <div class="theme-label">Void</div>
+        </div>
+        <div style="text-align:center">
+          <div class="theme-dot" data-t="forest" onclick="setTheme('forest',this)" title="Forest"></div>
+          <div class="theme-label">Forest</div>
+        </div>
+        <div style="text-align:center">
+          <div class="theme-dot" data-t="sunset" onclick="setTheme('sunset',this)" title="Sunset"></div>
+          <div class="theme-label">Sunset</div>
+        </div>
+        <div style="text-align:center">
+          <div class="theme-dot" data-t="sakura" onclick="setTheme('sakura',this)" title="Sakura"></div>
+          <div class="theme-label">Sakura</div>
+        </div>
+        <div style="text-align:center">
+          <div class="theme-dot" data-t="ocean" onclick="setTheme('ocean',this)" title="Ocean"></div>
+          <div class="theme-label">Ocean</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THIS YEAR -->
+    <div class="rpanel-section">
+      <div class="section-label">This Year</div>
+      <div class="year-card">
+        <div class="year-days" id="year-days-left">—</div>
+        <div class="year-days-lbl">days left in <span id="year-num"></span></div>
+        <div class="year-progress-track"><div class="year-progress-fill" id="year-progress-fill"></div></div>
+        <div class="year-progress-pct" id="year-progress-pct">— % of year complete</div>
+      </div>
+    </div>
+
+    <!-- CAMERA -->
+    <div class="rpanel-section">
+      <div class="section-label">Camera</div>
+      <div class="cam-controls">
+        <button class="cam-toggle" id="cam-toggle-btn" onclick="toggleCam()">Enable Camera</button>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Position</span>
+          <div class="ctrl-btns">
+            <button class="ctrl-btn sel" onclick="setCamPos('bottom-right',this)">↘ BR</button>
+            <button class="ctrl-btn" onclick="setCamPos('bottom-left',this)">↙ BL</button>
+            <button class="ctrl-btn" onclick="setCamPos('top-right',this)">↗ TR</button>
+            <button class="ctrl-btn" onclick="setCamPos('top-left',this)">↖ TL</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Size</span>
+          <div class="ctrl-btns">
+            <button class="ctrl-btn" onclick="setCamSize('sm',this)">Sm</button>
+            <button class="ctrl-btn sel" onclick="setCamSize('md',this)">Md</button>
+            <button class="ctrl-btn" onclick="setCamSize('lg',this)">Lg</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STREAM OVERLAY -->
+    <div class="rpanel-section">
+      <div class="section-label">Stream Overlay</div>
+      <button class="cam-toggle" id="hud-toggle-btn" onclick="toggleHud()">Show Overlay</button>
+      <div class="hud-widget-grid">
+        <div class="amb-btn active" data-widget="clock" onclick="toggleHudWidget('clock',this)">
+          <span class="amb-icon">🕐</span><span class="amb-label">Clock</span>
+        </div>
+        <div class="amb-btn active" data-widget="timer" onclick="toggleHudWidget('timer',this)">
+          <span class="amb-icon">⏱</span><span class="amb-label">Timer</span>
+        </div>
+        <div class="amb-btn active" data-widget="days" onclick="toggleHudWidget('days',this)">
+          <span class="amb-icon">📅</span><span class="amb-label">Days Left</span>
+        </div>
+        <div class="amb-btn active" data-widget="tasks" onclick="toggleHudWidget('tasks',this)">
+          <span class="amb-icon">✅</span><span class="amb-label">Tasks</span>
+        </div>
+        <div class="amb-btn active" data-widget="graph" onclick="toggleHudWidget('graph',this)">
+          <span class="amb-icon">📊</span><span class="amb-label">Graph</span>
+        </div>
+        <div class="amb-btn active" data-widget="hours" onclick="toggleHudWidget('hours',this)">
+          <span class="amb-icon">⏳</span><span class="amb-label">Total Hrs</span>
+        </div>
+        <div class="amb-btn active" data-widget="quotes" onclick="toggleHudWidget('quotes',this)">
+          <span class="amb-icon">💬</span><span class="amb-label">Quotes</span>
+        </div>
+        <div class="amb-btn" data-widget="mood" onclick="toggleHudWidget('mood',this)">
+          <span class="amb-icon">😊</span><span class="amb-label">Mood</span>
+        </div>
+        <div class="amb-btn" data-widget="water" onclick="toggleHudWidget('water',this)">
+          <span class="amb-icon">💧</span><span class="amb-label">Water</span>
+        </div>
+        <div class="amb-btn" data-widget="pom-count" onclick="toggleHudWidget('pom-count',this)">
+          <span class="amb-icon">🍅</span><span class="amb-label">Pomodoros</span>
+        </div>
+        <div class="amb-btn" data-widget="note" onclick="toggleHudWidget('note',this)">
+          <span class="amb-icon">📝</span><span class="amb-label">Note</span>
+        </div>
+        <div class="amb-btn" data-widget="streak" onclick="toggleHudWidget('streak',this)">
+          <span class="amb-icon">🔥</span><span class="amb-label">Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="rpanel-section">
+      <div class="section-label">History</div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="rpanel-section">
+      <div class="section-label">Session Log</div>
+      <div id="session-log"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="bottom-bar">
+  <span class="pill study" id="bottom-mode">Study</span>
+  <span class="bsep">·</span>
+  <span id="bottom-log">StudyStream ready — Discord pe stream shuru karo!</span>
+  <span class="bsep">·</span>
+  <span id="bottom-now-playing">No music</span>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   DB
+══════════════════════════════════════════ */
+const DB_NAME='StudyStreamDB',DB_VER=2;let db;
+function openDB(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAME,DB_VER);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('sessions'))d.createObjectStore('sessions',{keyPath:'id',autoIncrement:true});if(!d.objectStoreNames.contains('tasks'))d.createObjectStore('tasks',{keyPath:'id',autoIncrement:true});if(!d.objectStoreNames.contains('taskLibrary'))d.createObjectStore('taskLibrary',{keyPath:'id',autoIncrement:true});};req.onsuccess=e=>{db=e.target.result;res(db);};req.onerror=rej;});}
+function dbPut(s,o){return new Promise((r,j)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).put(o).onsuccess=e=>r(e.target.result);tx.onerror=j;});}
+function dbGetAll(s){return new Promise((r,j)=>{const tx=db.transaction(s,'readonly');tx.objectStore(s).getAll().onsuccess=e=>r(e.target.result);tx.onerror=j;});}
+function dbDelete(s,id){return new Promise((r,j)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).delete(id).onsuccess=r;tx.onerror=j;});}
+
+/* ══════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════ */
+function tickClock(){
+  const now=new Date();
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const timeStr=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  const dateStr=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()];
+  document.getElementById('clock-display').textContent=timeStr;
+  document.getElementById('date-display').textContent=dateStr;
+  document.getElementById('hudw-clock').textContent=timeStr;
+  document.getElementById('hudw-date').textContent=dateStr;
+  updateYearProgress(now);
+}
+function updateYearProgress(now){
+  now=now||new Date();
+  const year=now.getFullYear();
+  const startOfYear=new Date(year,0,1);
+  const startOfNextYear=new Date(year+1,0,1);
+  const msPerDay=86400000;
+  const totalDays=Math.round((startOfNextYear-startOfYear)/msPerDay);
+  const dayOfYear=Math.floor((now-startOfYear)/msPerDay)+1;
+  const daysLeft=totalDays-dayOfYear;
+  const pct=Math.min(100,Math.round((dayOfYear/totalDays)*100));
+  const elD=document.getElementById('year-days-left');
+  if(elD)elD.textContent=daysLeft;
+  const elN=document.getElementById('year-num');
+  if(elN)elN.textContent=year;
+  const elF=document.getElementById('year-progress-fill');
+  if(elF)elF.style.width=pct+'%';
+  const elP=document.getElementById('year-progress-pct');
+  if(elP)elP.textContent=pct+'% of '+year+' complete';
+  const hudNum=document.getElementById('hudw-days-num');
+  if(hudNum)hudNum.textContent=daysLeft;
+  const hudYear=document.getElementById('hudw-year-num');
+  if(hudYear)hudYear.textContent=year;
+  const hudFill=document.getElementById('hudw-year-fill');
+  if(hudFill)hudFill.style.width=pct+'%';
+}
+setInterval(tickClock,1000);tickClock();
+
+/* ══════════════════════════════════════════
+   QUOTES
+══════════════════════════════════════════ */
+const quotes=[
+  {t:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+  {t:"It always seems impossible until it's done.",a:"Nelson Mandela"},
+  {t:"Don't watch the clock; do what it does. Keep going.",a:"Sam Levenson"},
+  {t:"Success is the sum of small efforts repeated day in and day out.",a:"Robert Collier"},
+  {t:"Believe you can and you're halfway there.",a:"Theodore Roosevelt"},
+  {t:"Hard work beats talent when talent doesn't work hard.",a:"Tim Notke"},
+  {t:"You don't have to be great to start, but you have to start to be great.",a:"Zig Ziglar"},
+  {t:"The expert in anything was once a beginner.",a:"Helen Hayes"},
+  {t:"Focus on being productive instead of busy.",a:"Tim Ferriss"},
+  {t:"Energy and persistence conquer all things.",a:"Benjamin Franklin"},
+];
+function showQuote(){
+  const q=quotes[Math.floor(Math.random()*quotes.length)];
+  document.getElementById('quote-text').textContent='"'+q.t+'"';
+  document.getElementById('quote-author').textContent='— '+q.a;
+  const hudQ=document.getElementById('hudw-quote-text');
+  const hudA=document.getElementById('hudw-quote-author');
+  if(hudQ){
+    hudQ.style.opacity=0;hudA.style.opacity=0;
+    setTimeout(()=>{
+      hudQ.textContent='"'+q.t+'"';hudA.textContent='— '+q.a;
+      hudQ.style.transition='opacity 0.5s';hudA.style.transition='opacity 0.5s';
+      hudQ.style.opacity=1;hudA.style.opacity=1;
+    },250);
+  }
+}
+showQuote();
+setInterval(showQuote,30000);
+
+/* ══════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════ */
+let timerMode='pomodoro',timerState='idle',timerInterval=null;
+let totalSecs=25*60,remainSecs=25*60,elapsedSecs=0;
+let pomPhase='focus',pomCycle=0;
+let todaySessions=0,todayTasksDone=0,todayFocusMin=0;
+let sessionStartTime=null;
+const pomTimes={focus:25*60,short:5*60,long:15*60};
+
+function setMode(m){
+  timerMode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mode-'+m).classList.add('active');
+  document.getElementById('custom-input-row').style.display=m==='custom'?'flex':'none';
+  document.getElementById('pom-dots').style.display=m==='pomodoro'?'flex':'none';
+  resetTimer();
+}
+function getTotalSecs(){
+  if(timerMode==='pomodoro')return pomTimes[pomPhase];
+  if(timerMode==='custom')return(parseInt(document.getElementById('custom-mins').value)||25)*60;
+  return 0;
+}
+function startTimer(){
+  if(timerState==='running')return;
+  if(timerMode==='stopwatch'){
+    timerState='running';
+    if(!sessionStartTime)sessionStartTime=Date.now()-elapsedSecs*1000;
+    timerInterval=setInterval(tickStopwatch,1000);
+    addLog('Stopwatch started');
+  }else{
+    if(timerState==='idle'){remainSecs=getTotalSecs();totalSecs=remainSecs;}
+    timerState='running';
+    sessionStartTime=sessionStartTime||Date.now();
+    timerInterval=setInterval(tickCountdown,1000);
+    addLog('Session started ▶');
+  }
+  document.getElementById('btn-start').classList.add('active-btn');
+  document.getElementById('stream-pill').style.display='inline';
+  updateTimerDisplay();
+}
+function pauseTimer(){
+  if(timerState!=='running')return;
+  clearInterval(timerInterval);timerState='paused';
+  document.getElementById('btn-start').classList.remove('active-btn');
+  addLog('Paused ⏸');saveFocusTime();
+}
+function resetTimer(){
+  clearInterval(timerInterval);timerState='idle';elapsedSecs=0;sessionStartTime=null;
+  if(timerMode==='stopwatch'){remainSecs=0;totalSecs=0;}
+  else{remainSecs=getTotalSecs();totalSecs=remainSecs;}
+  document.getElementById('btn-start').classList.remove('active-btn');
+  updateTimerDisplay();
+}
+function tickCountdown(){remainSecs--;elapsedSecs++;updateTimerDisplay();if(remainSecs<=0)onTimerEnd();}
+function tickStopwatch(){elapsedSecs++;remainSecs=elapsedSecs;totalSecs=Math.max(totalSecs,elapsedSecs);updateTimerDisplay();}
+function onTimerEnd(){
+  clearInterval(timerInterval);timerState='idle';saveFocusTime();
+  if(timerMode==='pomodoro'){
+    pomCycle++;todaySessions++;
+    document.getElementById('stat-sessions').textContent=todaySessions;
+    updatePomCount();
+    if(pomPhase==='focus'){pomPhase=pomCycle%4===0?'long':'short';addLog('Focus done! Break time 🎉');}
+    else{pomPhase='focus';addLog('Break over — let\'s go! 💪');}
+    remainSecs=getTotalSecs();totalSecs=remainSecs;
+    updateTimerDisplay();saveSession();
+  }
+}
+function saveFocusTime(){
+  if(!sessionStartTime)return;
+  const mins=Math.round((Date.now()-sessionStartTime)/60000);
+  todayFocusMin+=mins;
+  document.getElementById('stat-focus').textContent=todayFocusMin+'m';
+  updateGoalBar();
+  dbGetAll('sessions').then(s=>{updateHudGraph(s);updateTotalHours(s);});
+  sessionStartTime=null;
+}
+function saveSession(){
+  const today=new Date().toLocaleDateString();
+  dbPut('sessions',{date:today,sessions:todaySessions,tasksDone:todayTasksDone,focusMin:todayFocusMin}).then(loadHistory);
+}
+function updateTimerDisplay(){
+  let disp;
+  if(timerMode==='stopwatch'){
+    const h=Math.floor(elapsedSecs/3600),m=Math.floor((elapsedSecs%3600)/60),s=elapsedSecs%60;
+    disp=h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
+  }else{
+    const m=Math.floor(remainSecs/60),s=remainSecs%60;
+    disp=`${pad(m)}:${pad(s)}`;
+  }
+  const dEl=document.getElementById('timer-digits');
+  dEl.textContent=disp;
+  document.getElementById('hudw-timer').textContent=disp;
+  const isBreak=timerMode==='pomodoro'&&pomPhase!=='focus';
+  dEl.classList.toggle('break-time',isBreak);
+  const labels={focus:'Focus session',short:'Short break ☕',long:'Long break 🌿'};
+  const modeLabelText=timerMode==='pomodoro'?labels[pomPhase]:timerMode==='custom'?'Custom timer':'Stopwatch';
+  document.getElementById('timer-mode-label').textContent=modeLabelText;
+  document.getElementById('hudw-timer-lbl').textContent=timerMode==='pomodoro'?(pomPhase==='focus'?'Focus':'Break'):timerMode==='custom'?'Custom':'Stopwatch';
+  const pct=totalSecs>0?Math.round((1-remainSecs/totalSecs)*100):timerMode==='stopwatch'?100:0;
+  document.getElementById('timer-progress-bar').style.width=pct+'%';
+  updateHudRing(timerMode==='stopwatch'?(elapsedSecs%60)/60*100:pct);
+  // pom dots
+  if(timerMode==='pomodoro'){
+    for(let i=0;i<4;i++){
+      const dot=document.getElementById('dot-'+i);
+      if(!dot)continue;
+      dot.className='pom-dot';
+      const cycleInBlock=pomCycle%4;
+      if(i<cycleInBlock)dot.classList.add('done');
+      else if(i===cycleInBlock&&pomPhase==='focus')dot.classList.add('current');
+    }
+  }
+  const modeText=timerMode==='pomodoro'?(pomPhase==='focus'?'Study':'Break'):'Study';
+  const modeClass=isBreak?'break':'study';
+  document.getElementById('mode-pill').textContent=modeText;
+  document.getElementById('mode-pill').className='pill '+modeClass;
+  document.getElementById('bottom-mode').textContent=modeText;
+  document.getElementById('bottom-mode').className='pill '+modeClass;
+}
+
+/* ══════════════════════════════════════════
+   LOFI PLAYER
+══════════════════════════════════════════ */
+const LOFI_TRACKS=[
+  {id:'d0', name:'Lofi Hip Hop Radio',    icon:'🎵', url:'https://streams.ilovemusic.de/iloveradio17.mp3',  src:'iLoveRadio'},
+  {id:'d1', name:'Chillhop Radio',        icon:'🌿', url:'https://streams.ilovemusic.de/iloveradio2.mp3',   src:'iLoveRadio'},
+  {id:'d2', name:'Synthwave FM',          icon:'🌆', url:'https://streams.ilovemusic.de/iloveradio21.mp3',  src:'iLoveRadio'},
+  {id:'d3', name:'Deep Focus',            icon:'📚', url:'https://streams.ilovemusic.de/iloveradio10.mp3',  src:'iLoveRadio'},
+  {id:'d4', name:'Ambient & Chillout',    icon:'🌌', url:'https://streams.ilovemusic.de/iloveradio6.mp3',   src:'iLoveRadio'},
+  {id:'d5', name:'Jazz FM',               icon:'🎷', url:'https://streams.ilovemusic.de/iloveradio12.mp3',  src:'iLoveRadio'},
+  {id:'d6', name:'Classical Focus',       icon:'🎻', url:'https://streams.ilovemusic.de/iloveradio20.mp3',  src:'iLoveRadio'},
+  {id:'d7', name:'Acoustic Chill',        icon:'🎸', url:'https://streams.ilovemusic.de/iloveradio13.mp3',  src:'iLoveRadio'},
+  {id:'d8', name:'Piano & Study',         icon:'🎹', url:'https://streams.ilovemusic.de/iloveradio9.mp3',   src:'iLoveRadio'},
+  {id:'d9', name:'Indie Folk',            icon:'🍃', url:'https://streams.ilovemusic.de/iloveradio14.mp3',  src:'iLoveRadio'},
+  {id:'d10',name:'Electronic Beats',      icon:'⚡', url:'https://streams.ilovemusic.de/iloveradio5.mp3',   src:'iLoveRadio'},
+  {id:'d11',name:'R&B Vibes',             icon:'🎤', url:'https://streams.ilovemusic.de/iloveradio4.mp3',   src:'iLoveRadio'},
+  {id:'d12',name:'Reggae Chill',          icon:'🌴', url:'https://streams.ilovemusic.de/iloveradio16.mp3',  src:'iLoveRadio'},
+  {id:'d13',name:'Café de Paris',         icon:'☕', url:'https://streams.ilovemusic.de/iloveradio11.mp3',  src:'iLoveRadio'},
+  {id:'d14',name:'Nature Sounds Mix',     icon:'🌊', url:'https://streams.ilovemusic.de/iloveradio19.mp3',  src:'iLoveRadio'},
+];
+let customTracks=[];
+let hiddenDefaults=new Set();
+let lofiAudio=null,lofiIframe=null,currentTrackId=null,lofiPlaying=false;
+let lofiVol=0.7;
+
+function loadLofiState(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('ss_lofi')||'{}');
+    customTracks=Array.isArray(saved.customTracks)?saved.customTracks:[];
+    hiddenDefaults=new Set(saved.hiddenDefaults||[]);
+    if(saved.vol!=null)lofiVol=saved.vol;
+  }catch(e){customTracks=[];hiddenDefaults=new Set();}
+}
+function saveLofiState(){
+  localStorage.setItem('ss_lofi',JSON.stringify({customTracks,hiddenDefaults:[...hiddenDefaults],vol:lofiVol}));
+}
+function getAllTracks(){
+  return [...LOFI_TRACKS.filter(t=>!hiddenDefaults.has(t.id)),...customTracks];
+}
+
+function renderLofiTracks(){
+  const allTracks=getAllTracks();
+  const el=document.getElementById('lofi-tracks');
+  el.innerHTML='';
+  allTracks.forEach(t=>{
+    const playing=t.id===currentTrackId&&lofiPlaying;
+    const div=document.createElement('div');
+    div.className='lofi-track'+(playing?' playing':'');
+    div.innerHTML=`<div class="track-icon">${t.icon}</div><div class="track-info"><div class="track-name">${t.name}</div><div class="track-src">${t.src}</div></div><div class="track-play-icon">${playing?'▶':'›'}</div><div class="track-del" title="Remove track">×</div>`;
+    div.querySelector('.track-info').onclick=()=>playTrack(t.id);
+    div.querySelector('.track-icon').onclick=()=>playTrack(t.id);
+    div.querySelector('.track-del').onclick=(e)=>{e.stopPropagation();removeTrack(t.id);};
+    el.appendChild(div);
+  });
+  if(allTracks.length===0){
+    el.innerHTML='<div style="font-size:10px;color:var(--textDim);text-align:center;padding:10px;">No tracks — add one below ↓</div>';
+  }
+  document.getElementById('restore-defaults-row').style.display=hiddenDefaults.size>0?'flex':'none';
+}
+
+function playTrack(id){
+  const track=getAllTracks().find(t=>t.id===id);
+  if(!track)return;
+  // stop existing
+  if(lofiAudio){lofiAudio.pause();lofiAudio.src='';lofiAudio=null;}
+  if(lofiIframe){lofiIframe.remove();lofiIframe=null;}
+
+  if(track.isYT){
+    // YouTube — iframe, no volume control
+    lofiIframe=document.createElement('iframe');
+    lofiIframe.src=track.url;
+    lofiIframe.allow='autoplay';
+    lofiIframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+    document.body.appendChild(lofiIframe);
+    addLog('Now playing (YT — no vol ctrl): '+track.name);
+  }else{
+    lofiAudio=new Audio();
+    lofiAudio.crossOrigin='anonymous';
+    lofiAudio.src=track.url;
+    lofiAudio.volume=lofiVol;
+    lofiAudio.play().catch(e=>addLog('Stream error: '+e.message));
+    lofiAudio.onerror=()=>addLog('Stream failed — check URL');
+    addLog('Now playing: '+track.name);
+  }
+  currentTrackId=id;lofiPlaying=true;
+  document.getElementById('np-label').textContent=track.icon+' '+track.name;
+  document.getElementById('np-label').classList.remove('off');
+  document.getElementById('np-eq').classList.remove('paused');
+  document.getElementById('bottom-now-playing').textContent='♪ '+track.name;
+  const sl=document.getElementById('vol-slider');
+  if(sl){sl.value=Math.round(lofiVol*100);updateVolSliderUI(sl.value);}
+  renderLofiTracks();
+}
+
+function stopLofiPlayback(){
+  if(lofiAudio){lofiAudio.pause();lofiAudio.src='';lofiAudio=null;}
+  if(lofiIframe){lofiIframe.remove();lofiIframe=null;}
+  lofiPlaying=false;
+  document.getElementById('np-eq').classList.add('paused');
+  document.getElementById('np-label').classList.add('off');
+  document.getElementById('np-label').textContent='Not playing';
+  document.getElementById('bottom-now-playing').textContent='No music';
+}
+
+function toggleLofi(){
+  const allTracks=getAllTracks();
+  if(allTracks.length===0)return;
+  if(!lofiPlaying&&!currentTrackId){playTrack(allTracks[0].id);return;}
+  if(lofiPlaying){
+    if(lofiAudio)lofiAudio.pause();
+    lofiPlaying=false;
+    document.getElementById('np-eq').classList.add('paused');
+    renderLofiTracks();
+    addLog('Music paused');
+  }else{
+    if(lofiAudio&&currentTrackId){
+      lofiAudio.play().catch(()=>playTrack(currentTrackId));
+      lofiPlaying=true;
+      document.getElementById('np-eq').classList.remove('paused');
+      renderLofiTracks();
+      addLog('Music resumed');
+    }else{
+      playTrack(allTracks[0].id);
+    }
+  }
+}
+
+function removeTrack(id){
+  const isPlaying=id===currentTrackId;
+  if(id.startsWith('d')){hiddenDefaults.add(id);}
+  else{customTracks=customTracks.filter(t=>t.id!==id);}
+  saveLofiState();
+  if(isPlaying){currentTrackId=null;stopLofiPlayback();}
+  renderLofiTracks();
+  addLog('Track removed');
+}
+
+function restoreDefaultTracks(){
+  hiddenDefaults.clear();saveLofiState();renderLofiTracks();
+  addLog('Default tracks restored');
+}
+
+function updateVolSliderUI(v){
+  const pct=v+'%';
+  document.getElementById('vol-slider').style.background=
+    `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}, var(--border2) ${pct})`;
+}
+
+function setVol(v){
+  lofiVol=v/100;
+  if(lofiAudio)lofiAudio.volume=lofiVol;
+  updateVolSliderUI(v);
+  saveLofiState();
+}
+
+function addCustomLofi(){
+  const inp=document.getElementById('custom-lofi-input');
+  let url=inp.value.trim();if(!url)return;
+  const ytMatch=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if(ytMatch){
+    // use iframe method for YouTube — no volume control
+    const embedUrl=`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+    const id='c'+Date.now()+Math.floor(Math.random()*1000);
+    customTracks.push({id,name:'YT: '+ytMatch[1],icon:'📺',url:embedUrl,src:'YouTube',isYT:true});
+    saveLofiState();inp.value='';renderLofiTracks();
+    addLog('YouTube track added (no volume control)');
+    return;
+  }
+  const id='c'+Date.now()+Math.floor(Math.random()*1000);
+  const name=url.split('/').pop().split('?')[0]||url.slice(0,35);
+  customTracks.push({id,name:name.length>35?name.slice(0,35)+'…':name,icon:'🎧',url,src:'Custom'});
+  saveLofiState();inp.value='';renderLofiTracks();
+  addLog('Custom track added');
+}
+
+/* ══════════════════════════════════════════
+   AMBIENT SOUNDS — Web Audio API (no external URLs)
+══════════════════════════════════════════ */
+let ambCtx=null;
+let ambMasterGain=null;
+const ambNodes={};
+const ambActive={rain:false,fire:false,cafe:false,wind:false,ocean:false,night:false};
+let ambVol=0.6;
+
+function getAmbCtx(){
+  if(!ambCtx){
+    ambCtx=new(window.AudioContext||window.webkitAudioContext)();
+    ambMasterGain=ambCtx.createGain();
+    ambMasterGain.gain.value=ambVol;
+    ambMasterGain.connect(ambCtx.destination);
+  }
+  if(ambCtx.state==='suspended')ambCtx.resume();
+  return ambCtx;
+}
+
+function setAmbVol(v){
+  ambVol=v/100;
+  if(ambMasterGain)ambMasterGain.gain.value=ambVol;
+  const pct=v+'%';
+  document.getElementById('amb-vol-slider').style.background=
+    `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}, var(--border2) ${pct})`;
+}
+
+/* ── noise buffer (shared) ── */
+let _noiseBuffer=null;
+function getNoiseBuffer(ctx){
+  if(_noiseBuffer)return _noiseBuffer;
+  const frames=ctx.sampleRate*2;
+  const buf=ctx.createBuffer(1,frames,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<frames;i++)data[i]=Math.random()*2-1;
+  _noiseBuffer=buf;
+  return buf;
+}
+
+/* ── brown noise buffer ── */
+function getBrownBuffer(ctx){
+  const frames=ctx.sampleRate*2;
+  const buf=ctx.createBuffer(1,frames,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  let last=0;
+  for(let i=0;i<frames;i++){
+    const white=Math.random()*2-1;
+    data[i]=(last+0.02*white)/1.02;
+    last=data[i];
+    data[i]*=3.5;
+  }
+  return buf;
+}
+
+function makeLoopSource(ctx,buf){
+  const src=ctx.createBufferSource();
+  src.buffer=buf;src.loop=true;
+  return src;
+}
+
+/* ────────────────────────────────────────
+   RAIN  — white noise + bandpass
+──────────────────────────────────────── */
+function startRain(ctx){
+  const gain=ctx.createGain();gain.gain.value=0;
+  const buf=getNoiseBuffer(ctx);
+  const src=makeLoopSource(ctx,buf);
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1200;bp.Q.value=0.4;
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=400;
+  src.connect(hp);hp.connect(bp);bp.connect(gain);gain.connect(ambMasterGain);
+  src.start();
+  gain.gain.linearRampToValueAtTime(0.55,ctx.currentTime+1.5);
+  return{src,gain,nodes:[bp,hp]};
+}
+
+/* ────────────────────────────────────────
+   FIRE  — brown noise + low-pass + LFO wobble
+──────────────────────────────────────── */
+function startFire(ctx){
+  const gain=ctx.createGain();gain.gain.value=0;
+  const buf=getBrownBuffer(ctx);
+  const src=makeLoopSource(ctx,buf);
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;lp.Q.value=1.2;
+  // LFO on filter freq for crackle feel
+  const lfo=ctx.createOscillator();lfo.frequency.value=3.5;
+  const lfoGain=ctx.createGain();lfoGain.gain.value=280;
+  lfo.connect(lfoGain);lfoGain.connect(lp.frequency);
+  lfo.start();
+  src.connect(lp);lp.connect(gain);gain.connect(ambMasterGain);
+  src.start();
+  gain.gain.linearRampToValueAtTime(0.45,ctx.currentTime+1.5);
+  return{src,gain,nodes:[lp,lfo,lfoGain]};
+}
+
+/* ────────────────────────────────────────
+   CAFÉ  — pink-ish noise + gentle bandpass chatter
+──────────────────────────────────────── */
+function startCafe(ctx){
+  const masterGain=ctx.createGain();masterGain.gain.value=0;
+  const buf=getNoiseBuffer(ctx);
+  // base murmur
+  const src=makeLoopSource(ctx,buf);
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=800;bp.Q.value=0.3;
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;
+  src.connect(bp);bp.connect(lp);lp.connect(masterGain);
+  src.start();
+  // subtle high chatter layer
+  const src2=makeLoopSource(ctx,buf);
+  const bp2=ctx.createBiquadFilter();bp2.type='bandpass';bp2.frequency.value=2800;bp2.Q.value=2;
+  const g2=ctx.createGain();g2.gain.value=0.18;
+  src2.connect(bp2);bp2.connect(g2);g2.connect(masterGain);
+  src2.start();
+  masterGain.connect(ambMasterGain);
+  masterGain.gain.linearRampToValueAtTime(0.35,ctx.currentTime+1.5);
+  return{src,gain:masterGain,nodes:[bp,lp,src2,bp2,g2]};
+}
+
+/* ────────────────────────────────────────
+   WIND  — filtered noise + slow LFO swell
+──────────────────────────────────────── */
+function startWind(ctx){
+  const gain=ctx.createGain();gain.gain.value=0;
+  const buf=getNoiseBuffer(ctx);
+  const src=makeLoopSource(ctx,buf);
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=600;bp.Q.value=0.8;
+  // slow swell LFO on gain
+  const lfo=ctx.createOscillator();lfo.frequency.value=0.18;lfo.type='sine';
+  const lfoGain=ctx.createGain();lfoGain.gain.value=0.15;
+  lfo.connect(lfoGain);lfoGain.connect(gain.gain);
+  lfo.start();
+  src.connect(bp);bp.connect(gain);gain.connect(ambMasterGain);
+  src.start();
+  gain.gain.linearRampToValueAtTime(0.4,ctx.currentTime+2);
+  return{src,gain,nodes:[bp,lfo,lfoGain]};
+}
+
+/* ────────────────────────────────────────
+   OCEAN  — sine wave swells + noise wash
+──────────────────────────────────────── */
+function startOcean(ctx){
+  const masterGain=ctx.createGain();masterGain.gain.value=0;
+  const buf=getNoiseBuffer(ctx);
+  // wave swell oscillator
+  const osc=ctx.createOscillator();osc.frequency.value=0.12;osc.type='sine';
+  const oscGain=ctx.createGain();oscGain.gain.value=0.25;
+  osc.connect(oscGain);oscGain.connect(masterGain);
+  osc.start();
+  // noise wash
+  const src=makeLoopSource(ctx,buf);
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;
+  const g=ctx.createGain();g.gain.value=0.3;
+  // LFO on noise gain for wave rhythm
+  const lfo=ctx.createOscillator();lfo.frequency.value=0.11;lfo.type='sine';
+  const lfoG=ctx.createGain();lfoG.gain.value=0.28;
+  lfo.connect(lfoG);lfoG.connect(g.gain);lfo.start();
+  src.connect(lp);lp.connect(g);g.connect(masterGain);
+  src.start();
+  masterGain.connect(ambMasterGain);
+  masterGain.gain.linearRampToValueAtTime(0.5,ctx.currentTime+2);
+  return{src,gain:masterGain,nodes:[osc,oscGain,lp,g,lfo,lfoG]};
+}
+
+/* ────────────────────────────────────────
+   NIGHT  — cricket chirps via oscillators
+──────────────────────────────────────── */
+function startNight(ctx){
+  const masterGain=ctx.createGain();masterGain.gain.value=0;
+  const chirps=[];
+  // two cricket "voices" slightly detuned
+  [[4200,0],[4350,0.07],[4100,0.14]].forEach(([freq,delay])=>{
+    const osc=ctx.createOscillator();osc.frequency.value=freq;osc.type='sine';
+    const g=ctx.createGain();g.gain.value=0;
+    // chirp LFO — rapid AM
+    const lfo=ctx.createOscillator();lfo.frequency.value=28;lfo.type='square';
+    const lfoG=ctx.createGain();lfoG.gain.value=0.06;
+    // slow envelope LFO
+    const envLfo=ctx.createOscillator();envLfo.frequency.value=0.9+Math.random()*0.3;envLfo.type='sine';
+    const envG=ctx.createGain();envG.gain.value=0.04;
+    lfo.connect(lfoG);lfoG.connect(g.gain);
+    envLfo.connect(envG);envG.connect(g.gain);
+    osc.connect(g);g.connect(masterGain);
+    osc.start(ctx.currentTime+delay);lfo.start(ctx.currentTime+delay);envLfo.start(ctx.currentTime+delay);
+    chirps.push(osc,g,lfo,lfoG,envLfo,envG);
+  });
+  masterGain.connect(ambMasterGain);
+  masterGain.gain.linearRampToValueAtTime(0.18,ctx.currentTime+1.5);
+  return{gain:masterGain,nodes:chirps};
+}
+
+const AMB_STARTERS={rain:startRain,fire:startFire,cafe:startCafe,wind:startWind,ocean:startOcean,night:startNight};
+
+function toggleAmb(name){
+  const btn=document.getElementById('amb-'+name+'-btn');
+  if(ambActive[name]){
+    // fade out then stop
+    const node=ambNodes[name];
+    if(node){
+      const ctx=getAmbCtx();
+      node.gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.8);
+      setTimeout(()=>{
+        try{if(node.src)node.src.stop();}catch(e){}
+        try{node.nodes.forEach(n=>{try{if(n.stop)n.stop();}catch(e){}try{n.disconnect();}catch(e){}});}catch(e){}
+        try{node.gain.disconnect();}catch(e){}
+        delete ambNodes[name];
+      },900);
+    }
+    ambActive[name]=false;btn.classList.remove('active');
+    addLog('Ambient off: '+name);
+  }else{
+    const ctx=getAmbCtx();
+    ambNodes[name]=AMB_STARTERS[name](ctx);
+    ambActive[name]=true;btn.classList.add('active');
+    addLog('Ambient on: '+name+' 🎧');
+  }
+}
+
+/* ══════════════════════════════════════════
+   STREAM OVERLAY (multi-widget HUD)
+══════════════════════════════════════════ */
+let hudOn=false;
+let hudWidgets={clock:true,timer:true,days:true,tasks:true,graph:true,hours:true,quotes:true};
+const HUD_RING_CIRC=2*Math.PI*34;
+
+function loadHudState(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('ss_hud')||'{}');
+    hudOn=!!saved.on;
+    if(saved.widgets)hudWidgets=Object.assign(hudWidgets,saved.widgets);
+  }catch(e){}
+  document.getElementById('stream-hud').classList.toggle('show',hudOn);
+  document.getElementById('hud-toggle-btn').textContent=hudOn?'Hide Overlay':'Show Overlay';
+  document.getElementById('hud-toggle-btn').classList.toggle('on',hudOn);
+  Object.keys(hudWidgets).forEach(key=>{
+    const w=document.getElementById('widget-'+key);
+    if(w)w.classList.toggle('on',hudWidgets[key]);
+    const chip=document.querySelector('.amb-btn[data-widget="'+key+'"]');
+    if(chip)chip.classList.toggle('active',hudWidgets[key]);
+  });
+  const ring=document.getElementById('hudw-ring');
+  if(ring)ring.style.strokeDasharray=HUD_RING_CIRC;
+}
+function saveHudState(){
+  localStorage.setItem('ss_hud',JSON.stringify({on:hudOn,widgets:hudWidgets}));
+}
+function toggleHud(){
+  hudOn=!hudOn;
+  document.getElementById('stream-hud').classList.toggle('show',hudOn);
+  document.getElementById('hud-toggle-btn').textContent=hudOn?'Hide Overlay':'Show Overlay';
+  document.getElementById('hud-toggle-btn').classList.toggle('on',hudOn);
+  saveHudState();
+  addLog(hudOn?'Stream overlay shown':'Stream overlay hidden');
+}
+function toggleHudWidget(key,el){
+  hudWidgets[key]=!hudWidgets[key];
+  const w=document.getElementById('widget-'+key);
+  if(w)w.classList.toggle('on',hudWidgets[key]);
+  el.classList.toggle('active',hudWidgets[key]);
+  saveHudState();
+}
+
+/* ══════════════════════════════════════════
+   DRAGGABLE HUD WIDGETS — pointer-event drag
+══════════════════════════════════════════ */
+(function initHudDrag(){
+  const hud=document.getElementById('stream-hud');
+  let active=null,startX=0,startY=0,origLeft=0,origTop=0;
+
+  function getAbsPos(el){
+    const rect=el.getBoundingClientRect();
+    const hudRect=hud.getBoundingClientRect();
+    return{left:rect.left-hudRect.left,top:rect.top-hudRect.top};
+  }
+
+  function onPointerDown(e){
+    const card=e.currentTarget;
+    const widget=card.closest('.hud-widget');
+    if(!widget)return;
+    // If textarea or button was clicked, don't drag
+    if(e.target.tagName==='TEXTAREA'||e.target.tagName==='BUTTON'||e.target.classList.contains('hud-mood-btn')||e.target.classList.contains('hud-water-btn'))return;
+    e.preventDefault();
+
+    // Convert to absolute if not already
+    if(!widget.classList.contains('positioned')){
+      const pos=getAbsPos(widget);
+      widget.style.transform='none';
+      widget.style.left=pos.left+'px';
+      widget.style.top=pos.top+'px';
+      widget.classList.add('positioned');
+      // Remove from corner container, reparent to hud
+      hud.appendChild(widget);
+    }
+
+    active=widget;
+    startX=e.clientX;
+    startY=e.clientY;
+    origLeft=parseFloat(widget.style.left)||0;
+    origTop=parseFloat(widget.style.top)||0;
+    card.classList.add('drag-active');
+    widget.classList.add('dragging');
+    widget.style.zIndex=100;
+  }
+
+  function onPointerMove(e){
+    if(!active)return;
+    const dx=e.clientX-startX;
+    const dy=e.clientY-startY;
+    const hudRect=hud.getBoundingClientRect();
+    const wRect=active.getBoundingClientRect();
+    const newLeft=Math.max(0,Math.min(origLeft+dx, hudRect.width-wRect.width));
+    const newTop=Math.max(0,Math.min(origTop+dy, hudRect.height-wRect.height));
+    active.style.left=newLeft+'px';
+    active.style.top=newTop+'px';
+  }
+
+  function onPointerUp(){
+    if(!active)return;
+    const card=active.querySelector('.hud-card');
+    if(card)card.classList.remove('drag-active');
+    active.classList.remove('dragging');
+    active.style.zIndex='';
+    active=null;
+  }
+
+  document.addEventListener('pointermove',onPointerMove);
+  document.addEventListener('pointerup',onPointerUp);
+
+  // Attach pointerdown to all hud-card elements
+  function attachDrag(){
+    document.querySelectorAll('#stream-hud .hud-card').forEach(card=>{
+      if(!card._dragBound){
+        card._dragBound=true;
+        card.addEventListener('pointerdown',onPointerDown);
+      }
+    });
+  }
+  // Script runs after DOM, so just call directly + small delay for safety
+  attachDrag();
+  setTimeout(attachDrag,300);
+  window.attachHudDrag=attachDrag;
+})();
+
+/* ══════════════════════════════════════════
+   MOOD WIDGET
+══════════════════════════════════════════ */
+let currentMood=0;
+function setMood(m,el){
+  currentMood=m;
+  document.querySelectorAll('.hud-mood-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const moods=['','Burnt out 😫','Tired 😔','Okay 😐','Good 🙂','Amazing 😄'];
+  addLog('Mood: '+moods[m]);
+}
+
+/* ══════════════════════════════════════════
+   WATER TRACKER
+══════════════════════════════════════════ */
+let waterCount=0;
+function addWater(){
+  if(waterCount>=8)waterCount=0;
+  waterCount++;
+  updateWaterUI();
+  addLog('Water: '+waterCount+'/8 glasses 💧');
+}
+function updateWaterUI(){
+  const el=document.getElementById('hudw-water-count');
+  if(el)el.textContent=waterCount+' / 8';
+  const dotsEl=document.getElementById('hudw-water-dots');
+  if(dotsEl){
+    dotsEl.innerHTML='';
+    for(let i=0;i<8;i++){
+      const d=document.createElement('div');
+      d.className='hud-water-dot'+(i<waterCount?' filled':'');
+      dotsEl.appendChild(d);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   POMODORO COUNT HUD
+══════════════════════════════════════════ */
+function updatePomCount(){
+  const el=document.getElementById('hudw-pom-count');
+  if(el)el.textContent=todaySessions;
+}
+
+/* ══════════════════════════════════════════
+   QUICK NOTE
+══════════════════════════════════════════ */
+function saveNote(v){
+  localStorage.setItem('ss_note',v);
+}
+function loadNote(){
+  const saved=localStorage.getItem('ss_note')||'';
+  const el=document.getElementById('hudw-note');
+  if(el)el.value=saved;
+}
+
+/* live data bindings for the overlay widgets */
+function updateHudRing(pct){
+  const ring=document.getElementById('hudw-ring');
+  if(!ring)return;
+  ring.style.strokeDashoffset=HUD_RING_CIRC*(1-pct/100);
+}
+function updateHudTasks(){
+  const today=new Date().toLocaleDateString();
+  const todayTasks=tasks.filter(t=>t.date===today);
+  const done=todayTasks.filter(t=>t.done).length;
+  const countEl=document.getElementById('hudw-tasks-count');
+  if(countEl)countEl.textContent=done+'/'+todayTasks.length;
+  const fillEl=document.getElementById('hudw-tasks-fill');
+  if(fillEl)fillEl.style.width=(todayTasks.length?Math.round(done/todayTasks.length*100):0)+'%';
+  const listEl=document.getElementById('hudw-tasks-list');
+  if(listEl){
+    const sorted=[...todayTasks].sort((a,b)=>a.done-b.done).slice(0,4);
+    listEl.innerHTML=sorted.map(t=>
+      `<div class="hud-task-row${t.done?' done':''}"><span class="hud-task-dot"></span><span class="hud-task-txt">${t.text}</span></div>`
+    ).join('')||'<div class="hud-task-row">No tasks added</div>';
+  }
+}
+function updateHudGraph(sessions){
+  const el=document.getElementById('hudw-graph-bars');
+  if(!el)return;
+  const dayLetters=['S','M','T','W','T','F','S'];
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push({date:d.toLocaleDateString(),letter:dayLetters[d.getDay()],isToday:i===0});
+  }
+  const byDate={};
+  sessions.forEach(s=>{byDate[s.date]=(byDate[s.date]||0)+(s.focusMin||0);});
+  const todayStr=new Date().toLocaleDateString();
+  byDate[todayStr]=Math.max(byDate[todayStr]||0,todayFocusMin);
+  const maxMin=Math.max(1,...days.map(d=>byDate[d.date]||0));
+  el.innerHTML=days.map(d=>{
+    const mins=byDate[d.date]||0;
+    const h=Math.max(3,Math.round((mins/maxMin)*42));
+    return `<div class="hud-bar"><div class="hud-bar-fill${d.isToday?' today':''}" style="height:${h}px"></div><span class="hud-bar-lbl">${d.letter}</span></div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   TOTAL STUDY HOURS — sums every saved session's
+   focusMin plus today's live (not-yet-saved) minutes
+══════════════════════════════════════════ */
+function updateTotalHours(sessions){
+  const update=(allSessions)=>{
+    const today=new Date().toLocaleDateString();
+    let totalMin=0,activeDays=0;
+    const seenDates=new Set();
+    allSessions.forEach(s=>{
+      totalMin+=(s.focusMin||0);
+      if((s.focusMin||0)>0||((s.sessions||0)>0)||((s.tasksDone||0)>0))seenDates.add(s.date);
+    });
+    // today's focus minutes accrue live in todayFocusMin and are only flushed to the
+    // sessions store on saveSession(); add them once so the total never double counts.
+    if(!allSessions.some(s=>s.date===today)){
+      totalMin+=todayFocusMin;
+      if(todayFocusMin>0)seenDates.add(today);
+    }
+    activeDays=seenDates.size;
+    const hrs=totalMin/60;
+    const hrsDisp=hrs>=100?Math.round(hrs)+'h':hrs.toFixed(1)+'h';
+    const numEl=document.getElementById('hudw-hours-num');
+    if(numEl)numEl.textContent=hrsDisp;
+    const subEl=document.getElementById('hudw-hours-sub');
+    if(subEl)subEl.textContent='across '+activeDays+' day'+(activeDays===1?'':'s');
+    const statEl=document.getElementById('stat-total-hours');
+    if(statEl)statEl.textContent=hrsDisp;
+  };
+  if(sessions){update(sessions);}
+  else{dbGetAll('sessions').then(update);}
+}
+
+/* ══════════════════════════════════════════
+   DAILY GOAL
+══════════════════════════════════════════ */
+let dailyGoalMins=120;
+function loadGoalState(){
+  const saved=parseInt(localStorage.getItem('ss_goal'));
+  if(saved&&saved>0){dailyGoalMins=saved;document.getElementById('goal-mins-input').value=saved;}
+}
+function setGoal(v){
+  const n=parseInt(v)||120;
+  dailyGoalMins=n;
+  localStorage.setItem('ss_goal',n);
+  updateGoalBar();
+}
+function updateGoalBar(){
+  const pct=dailyGoalMins>0?Math.min(100,Math.round((todayFocusMin/dailyGoalMins)*100)):0;
+  const fill=document.getElementById('goal-fill');
+  fill.style.width=pct+'%';
+  fill.classList.toggle('full',pct>=100);
+  document.getElementById('goal-pct').textContent=pct+'% of goal'+(pct>=100?' — done! 🎉':'');
+}
+
+/* ══════════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════════ */
+function spawnParticles(){
+  const wrap=document.getElementById('particles');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const count=16;
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const size=2+Math.random()*4;
+    p.style.width=size+'px';p.style.height=size+'px';
+    p.style.left=Math.random()*100+'%';
+    p.style.bottom='-10px';
+    p.style.setProperty('--drift',(Math.random()*60-30)+'px');
+    const dur=14+Math.random()*16;
+    p.style.animationDuration=dur+'s';
+    p.style.animationDelay=(Math.random()*dur)+'s';
+    wrap.appendChild(p);
+  }
+}
+
+/* ══════════════════════════════════════════
+   STREAK
+══════════════════════════════════════════ */
+function computeStreak(sessions){
+  const activeDates=new Set(
+    sessions.filter(s=>(s.sessions||0)>0||(s.tasksDone||0)>0||(s.focusMin||0)>0).map(s=>s.date)
+  );
+  let streak=0;
+  let cursor=new Date();
+  const today=cursor.toLocaleDateString();
+  // if nothing logged today yet, still allow streak to count from yesterday backwards
+  if(!activeDates.has(today))cursor.setDate(cursor.getDate()-1);
+  while(activeDates.has(cursor.toLocaleDateString())){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  document.getElementById('streak-num').textContent=streak;
+  const hudStreak=document.getElementById('hudw-streak-num');
+  if(hudStreak)hudStreak.textContent=streak;
+}
+
+
+let tasks=[];
+function addTask(){
+  const inp=document.getElementById('task-input');
+  const txt=inp.value.trim();if(!txt)return;
+  const task={text:txt,done:false,date:new Date().toLocaleDateString()};
+  dbPut('tasks',task).then(id=>{task.id=id;tasks.push(task);renderTasks();inp.value='';addLog('Added: '+txt);});
+}
+function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  t.done=!t.done;
+  dbPut('tasks',t).then(()=>{
+    if(t.done){todayTasksDone++;document.getElementById('stat-tasks').textContent=todayTasksDone;addLog('Done ✓ '+t.text);saveSession();}
+    renderTasks();updateActiveTaskLabel();
+  });
+}
+function deleteTask(id){
+  dbDelete('tasks',id).then(()=>{tasks=tasks.filter(x=>x.id!==id);renderTasks();updateActiveTaskLabel();});
+}
+function renderTasks(){
+  const el=document.getElementById('task-list');el.innerHTML='';
+  const today=new Date().toLocaleDateString();
+  const todayTasks=tasks.filter(t=>t.date===today);
+  const active=todayTasks.find(t=>!t.done);
+  todayTasks.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='task-item'+(t.done?' done':'')+(active&&t.id===active.id?' active-task':'');
+    div.innerHTML=`<div class="task-cb ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><span class="task-text" onclick="toggleTask(${t.id})">${t.text}</span><span class="task-del" onclick="deleteTask(${t.id})">×</span>`;
+    el.appendChild(div);
+  });
+  updateActiveTaskLabel();
+  updateHudTasks();
+}
+function updateActiveTaskLabel(){
+  const today=new Date().toLocaleDateString();
+  const active=tasks.find(t=>!t.done&&t.date===today);
+  document.getElementById('current-task-label').textContent=active?'▸ '+active.text:'No active task';
+}
+
+/* ══════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════ */
+async function loadHistory(){
+  const sessions=await dbGetAll('sessions');
+  const el=document.getElementById('history-list');el.innerHTML='';
+  const sorted=[...sessions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,7);
+  if(sorted.length===0){el.innerHTML='<div style="font-size:10px;color:var(--textDim);text-align:center;padding:8px;">No history yet</div>';}
+  else{
+    sorted.forEach(s=>{
+      const d=document.createElement('div');d.className='hist-item';
+      d.innerHTML=`<span class="hist-date">${s.date}</span><span class="hist-stats">${s.sessions}s · ${s.focusMin}m</span><span class="hist-tasks">${s.tasksDone} ✓</span>`;
+      el.appendChild(d);
+    });
+  }
+  computeStreak(sessions);
+  updateHudGraph(sessions);
+  updateTotalHours(sessions);
+}
+
+/* ══════════════════════════════════════════
+   LOG
+══════════════════════════════════════════ */
+let logLines=[];
+function addLog(msg){
+  const now=new Date(),t=pad(now.getHours())+':'+pad(now.getMinutes());
+  logLines.unshift({t,msg});if(logLines.length>20)logLines.pop();
+  const el=document.getElementById('session-log');
+  el.innerHTML=logLines.slice(0,8).map(l=>`<div class="log-line"><span class="log-time">${l.t}</span><span class="log-msg">${l.msg}</span></div>`).join('');
+  document.getElementById('bottom-log').textContent=t+' — '+msg;
+}
+
+/* ══════════════════════════════════════════
+   CAMERA
+══════════════════════════════════════════ */
+let camStream=null,camOn=false,camPos='bottom-right',camSize='md';
+async function toggleCam(){
+  if(!camOn){
+    const btn=document.getElementById('cam-toggle-btn');
+    btn.textContent='Connecting…';btn.disabled=true;
+    try{
+      camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+      const vid=document.getElementById('cam-video');vid.srcObject=camStream;
+      vid.onloadedmetadata=()=>{vid.play().catch(()=>{});};
+      document.getElementById('cam-pip').style.display='block';
+      camOn=true;btn.textContent='Disable Camera';btn.disabled=false;btn.classList.add('on');
+      document.getElementById('cam-pill').textContent='Cam On';
+      document.getElementById('cam-pill').className='pill cam-on';
+      addLog('Camera enabled');
+    }catch(e){
+      btn.textContent='Enable Camera';btn.disabled=false;
+      addLog('Camera error: '+(e.name==='NotAllowedError'?'permission denied':e.name));
+    }
+  }else{
+    if(camStream)camStream.getTracks().forEach(t=>t.stop());
+    document.getElementById('cam-video').srcObject=null;
+    document.getElementById('cam-pip').style.display='none';
+    camOn=false;
+    const btn=document.getElementById('cam-toggle-btn');
+    btn.textContent='Enable Camera';btn.disabled=false;btn.classList.remove('on');
+    document.getElementById('cam-pill').textContent='Cam Off';
+    document.getElementById('cam-pill').className='pill cam-off';
+    addLog('Camera disabled');
+  }
+}
+function setCamPos(pos,btn){
+  camPos=pos;
+  document.getElementById('cam-pip').className=`size-${camSize} ${pos}`;
+  btn.closest('.ctrl-btns').querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function setCamSize(sz,btn){
+  camSize=sz;
+  document.getElementById('cam-pip').className=`${camPos} size-${sz}`;
+  btn.closest('.ctrl-btns').querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+/* ══════════════════════════════════════════
+   SCREEN SHARE
+══════════════════════════════════════════ */
+document.getElementById('start-screen-btn').onclick=async()=>{
+  try{
+    const ss=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+    const vid=document.getElementById('screen-video');
+    vid.srcObject=ss;vid.style.display='block';
+    document.getElementById('screen-placeholder').style.display='none';
+    document.getElementById('quote-box').style.display='none';
+    document.getElementById('stream-pill').style.display='inline';
+    addLog('Screen sharing started');
+    ss.getVideoTracks()[0].onended=()=>{
+      vid.style.display='none';vid.srcObject=null;
+      document.getElementById('screen-placeholder').style.display='flex';
+      document.getElementById('quote-box').style.display='block';
+      document.getElementById('stream-pill').style.display='none';
+      addLog('Screen sharing ended');
+    };
+  }catch(e){addLog('Screen share cancelled');}
+};
+
+/* ══════════════════════════════════════════
+   THEMES
+══════════════════════════════════════════ */
+function setTheme(name,el){
+  document.documentElement.setAttribute('data-theme',name==='default'?'':name);
+  document.querySelectorAll('.theme-dot').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  localStorage.setItem('ss_theme',name);
+  addLog('Theme: '+name);
+}
+function loadThemeState(){
+  const saved=localStorage.getItem('ss_theme');
+  if(!saved)return;
+  document.documentElement.setAttribute('data-theme',saved==='default'?'':saved);
+  document.querySelectorAll('.theme-dot').forEach(d=>{
+    d.classList.toggle('active',d.dataset.t===saved);
+  });
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function pad(n){return String(n).padStart(2,'0');}
+
+/* ══════════════════════════════════════════
+   TASK LIBRARY
+══════════════════════════════════════════ */
+let taskLibOpen=false;
+function toggleTaskLibrary(){
+  taskLibOpen=!taskLibOpen;
+  const panel=document.getElementById('task-library-panel');
+  const row=document.getElementById('tlib-toggle-row');
+  panel.classList.toggle('open',taskLibOpen);
+  row.classList.toggle('open',taskLibOpen);
+  if(taskLibOpen)renderTaskLibrary();
+}
+async function renderTaskLibrary(){
+  const items=await dbGetAll('taskLibrary');
+  const el=document.getElementById('tlib-list');
+  const badge=document.getElementById('tlib-count-badge');
+  badge.textContent=items.length>0?items.length:'';
+  if(items.length===0){el.innerHTML='<div class="tlib-empty">No saved tasks yet.<br>Type a task and click <b>＋ Save current</b></div>';return;}
+  el.innerHTML='';
+  items.slice().reverse().forEach(item=>{
+    const div=document.createElement('div');
+    div.className='tlib-item';
+    div.innerHTML=`<span class="tlib-item-icon">📌</span><span class="tlib-item-text" title="${item.text}">${item.text}</span><span class="tlib-item-del" onclick="deleteLibItem(${item.id},event)">×</span>`;
+    div.querySelector('.tlib-item-text').onclick=()=>addTaskFromLibrary(item.text);
+    el.appendChild(div);
+  });
+}
+async function saveCurrentToLibrary(){
+  const inp=document.getElementById('task-input');
+  const txt=inp.value.trim();
+  if(!txt){addLog('Type a task first to save it');return;}
+  // check duplicate
+  const existing=await dbGetAll('taskLibrary');
+  if(existing.some(i=>i.text.toLowerCase()===txt.toLowerCase())){addLog('Already in library');return;}
+  await dbPut('taskLibrary',{text:txt});
+  renderTaskLibrary();
+  addLog('Saved to library: '+txt);
+}
+function addTaskFromLibrary(text){
+  document.getElementById('task-input').value=text;
+  addTask();
+}
+async function deleteLibItem(id,e){
+  e.stopPropagation();
+  await dbDelete('taskLibrary',id);
+  renderTaskLibrary();
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+async function init(){
+  loadThemeState();
+  loadLofiState();
+  loadHudState();
+  loadGoalState();
+  // init sliders with saved values
+  const lofiSl=document.getElementById('vol-slider');
+  if(lofiSl){lofiSl.value=Math.round(lofiVol*100);updateVolSliderUI(lofiSl.value);}
+  const ambSl=document.getElementById('amb-vol-slider');
+  if(ambSl){ambSl.value=Math.round(ambVol*100);setAmbVol(ambSl.value);}
+  spawnParticles();
+  await openDB();
+  tasks=await dbGetAll('tasks');renderTasks();await loadHistory();
+  const today=new Date().toLocaleDateString();
+  const allSessions=await dbGetAll('sessions');
+  const todaySession=allSessions.find(s=>s.date===today);
+  if(todaySession){
+    todaySessions=todaySession.sessions||0;todayTasksDone=todaySession.tasksDone||0;todayFocusMin=todaySession.focusMin||0;
+    document.getElementById('stat-sessions').textContent=todaySessions;
+    document.getElementById('stat-tasks').textContent=todayTasksDone;
+    document.getElementById('stat-focus').textContent=todayFocusMin+'m';
+  }
+  updateGoalBar();
+  updateYearProgress();
+  updateTimerDisplay();
+  updateHudGraph(allSessions);
+  renderLofiTracks();
+  loadNote();
+  // update library badge without opening panel
+  dbGetAll('taskLibrary').then(items=>{
+    const badge=document.getElementById('tlib-count-badge');
+    if(badge)badge.textContent=items.length>0?items.length:'';
+  });
+  addLog('StudyStream v4 ready ✨');
+}
+init();
+</script>
+</body>
+</html>
